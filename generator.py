@@ -10,7 +10,7 @@ import librosa, librosa.display
 from scipy.io import wavfile
 from scipy.signal import wiener
 if __name__=="__main__":
-    variational_auto_encoder = VariationalAutoEncoder.load("model_skipconrob20")  #model_spectr for first_source_sep
+    variational_auto_encoder = VariationalAutoEncoder.load("model_skipconrob2")  #model_spectr for first_source_sep
     # variational_auto_encoder.summary()
     b_train,y_train = load_fsdd("train")
     (np.min(b_train),np.max(b_train))
@@ -23,8 +23,8 @@ if __name__=="__main__":
     error = (x_train-b_train[:1])*5
     # x_train +=error
     
-    # plt.imshow(error[0],cmap="gray",vmin=-1,vmax=1)
-    # plt.show()
+    plt.imshow(error[0],cmap="gray",vmin=-1,vmax=1)
+    plt.show()
 
     # print(x_train.shape)
     # print(min(x_train))

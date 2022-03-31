@@ -29,3 +29,7 @@ https://www.youtube.com/watch?v=LxlqmU22uZk&ab_channel=CODEMENTAL&loop=0 #but ma
 # code to run for memory allocation - otherwise tf crashes on gpu
 https://www.tensorflow.org/guide/gpu
 https://stackoverflow.com/questions/56222435/tf-keras-layers-conv2d-is-not-working-with-keras-backend-set-to-float16
+
+# interpreter and environment
+- interpreter is python base - 3.7.5
+- environment is conda activate mss

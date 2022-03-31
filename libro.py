@@ -7,7 +7,7 @@ if __name__== "__main__":
     import numpy as np
     import matplotlib.pyplot as plt
     # import torch
-    file = "original.wav"#"2.wav"
+    file = "2.wav"
     file2 = "1.wav"
     '''able to convert any .wav file to spectrogram in pytorch and back''' 
 
@@ -15,17 +15,8 @@ if __name__== "__main__":
     # torch.set_printoptions(precision=10)
     #numpy array                
 
-    signal,sr = librosa.load(file,mono=True,sr=44100,duration=3.0)
+    signal,sr = librosa.load(file,mono=False,sr=44100,duration=3.0)
     # print(len(signal)/44100)
-    signal = librosa.core.stft(signal,hop_length=1050,n_fft=4096,center=True)
-    abs = np.abs(signal)
-    log = librosa.amplitude_to_db(abs)
-    normal = librosa.db_to_amplitude(log)
-    remade = librosa.core.griffinlim(normal,hop_length=1050)
-    wavfile.write("wtf3.wav",44100,remade) 
-    print("boo")
-    print(5/0)
-
   
     if signal.shape[0] <=2: signal = signal.transpose()
     signal_l,signal_r = signal[:,0], signal[:,1]

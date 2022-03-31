@@ -65,7 +65,7 @@ def load_fsdd(spectrograms_path):
       x_train.append(normalized_spectrogram)
     else:
       break
-  filelist = glob.glob(os.path.join("train/mixture", '*'))
+  filelist = glob.glob(os.path.join("train/vocals", '*'))
   filelist.sort(key=natural_keys)
   for i, file in enumerate(filelist):
     if i <100:
@@ -143,7 +143,7 @@ def train(x_train,y_train,learning_rate,batch_size,epochs):
 
   variatonal_auto_encoder.summary()
   variatonal_auto_encoder.compile(learning_rate)
-  variatonal_auto_encoder.train(x_train,x_train,batch_size,epochs) #y_train
+  variatonal_auto_encoder.train(x_train,y_train,batch_size,epochs) #y_train
   return variatonal_auto_encoder
 
 
@@ -159,7 +159,7 @@ if __name__=="__main__":
     # variational_auto_encoder.save("model_gentest")
 
     x_train,y_train = load_fsdd(LOAD_SPECTROGRAMS_PATH) 
-    # variational_auto_encoder = train(x_train[:1],x_train[:1],0.0005,BATCH_SIZE,EPOCHS*90)
+    variational_auto_encoder = train(x_train[:1],y_train[:1],0.0005,BATCH_SIZE,EPOCHS*90)
     # variational_auto_encoder.save("model_skipcon")
     # variational_auto_encoder.save("model_skipconrob20")
     # variational_auto_encoder = train(x_train[:1],x_train[:1],0.001,1,EPOCHS*40)
@@ -170,7 +170,7 @@ if __name__=="__main__":
     
     variational_auto_encoder.compile(learning_rate=LEARNING_RATE)
     print(np.min(x_train),np.max(x_train[:1]))
-    variational_auto_encoder.train(x_train[:1],x_train[:1],1,EPOCHS*90)
+    variational_auto_encoder.train(x_train[:1],x_train[:1],1,EPOCHS*1)
     variational_auto_encoder.save("model_skipconrob20")
     # variational_auto_encoder = VariationalAutoEncoder.load("model_spectr")
     asd

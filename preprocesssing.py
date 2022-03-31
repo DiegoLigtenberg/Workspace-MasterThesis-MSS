@@ -196,13 +196,13 @@ class Saver:
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
         save_file = f"{dataset_type}/{source}/{i}-{j}"      
-        # np.save(save_file+".npy",feature)
+        np.save(save_file+".npy",feature)
         return save_file
         
     def save_min_max_values(self,min_max_values):
         pass
-        # save_path = os.path.join(self.min_max_values_sive_dir,"min_max_values.pkl")
-        # self._save(min_max_values,save_path)
+        save_path = os.path.join(self.min_max_values_sive_dir,"min_max_values.pkl")
+        self._save(min_max_values,save_path)
     
     @staticmethod
     def _save(data,save_path):
