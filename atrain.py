@@ -1,6 +1,6 @@
 from enum import auto
-from aa import VariationalAutoEncoder
-# from auto_ancoder_lolstaatdaarmssnietvoorxD import VariationalAutoEncoder
+# from aa import VariationalAutoEncoder
+from auto_ancoder_lolstaatdaarmssnietvoorxD import VariationalAutoEncoder
 from tensorflow.keras.datasets import mnist
 import numpy as np
 import tensorflow as tf
@@ -158,20 +158,32 @@ if __name__=="__main__":
     # variational_auto_encoder = train(x_train[:5000],LEARNING_RATE,BATCH_SIZE,EPOCHS)
     # variational_auto_encoder.save("model_gentest")
 
+    # load data    
     x_train,y_train = load_fsdd(LOAD_SPECTROGRAMS_PATH) 
-    variational_auto_encoder = train(x_train[:1],y_train[:1],0.0005,BATCH_SIZE,EPOCHS*90)
+
+    # first training
+    # variational_auto_encoder = train(x_train[:1],y_train[:1],0.00005,1,EPOCHS*60)    
+    # variational_auto_encoder.save("model_vocal_sep")
+
+    # repeated training
+    variational_auto_encoder = VariationalAutoEncoder.load("model_vocal_sep")    
+    LEARNING_RATE = 0.00001 
+    variational_auto_encoder.compile(learning_rate=LEARNING_RATE)    
+    variational_auto_encoder.train(x_train[:1],y_train[:1],1,EPOCHS*60)    
+    variational_auto_encoder.save("model_vocal_sep")
+
+
     # variational_auto_encoder.save("model_skipcon")
     # variational_auto_encoder.save("model_skipconrob20")
     # variational_auto_encoder = train(x_train[:1],x_train[:1],0.001,1,EPOCHS*40)
-    variational_auto_encoder = VariationalAutoEncoder.load("model_skipconrob20")
+    # variational_auto_encoder = VariationalAutoEncoder.load("model_skipconrob20")
     LEARNING_RATE = 0.0001 
     # variational_auto_encoder.save("model_skipconrob20")
     # asd
     
-    variational_auto_encoder.compile(learning_rate=LEARNING_RATE)
-    print(np.min(x_train),np.max(x_train[:1]))
-    variational_auto_encoder.train(x_train[:1],x_train[:1],1,EPOCHS*1)
-    variational_auto_encoder.save("model_skipconrob20")
+    # print(np.min(x_train),np.max(x_train[:1]))
+    # variational_auto_encoder.train(x_train[:1],x_train[:1],1,EPOCHS*1)
+    # variational_auto_encoder.save("model_vocal_sep")
     # variational_auto_encoder = VariationalAutoEncoder.load("model_spectr")
     asd
     # 0.0635 loss
