@@ -153,8 +153,10 @@ cython_debug/
 
 # file extensions
 database/
+trained_models/
 *.wav
 *.mp3
 *.npy
 *.mp4
 *.stem.mp4
+*.h5

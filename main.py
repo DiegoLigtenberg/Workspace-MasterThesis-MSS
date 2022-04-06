@@ -1,4 +1,3 @@
-import lib
-
-lib.Data.file_1.lib_func()
+import mss
+from mss.models import atrain
 

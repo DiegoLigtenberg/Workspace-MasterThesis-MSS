@@ -33,3 +33,14 @@ https://stackoverflow.com/questions/56222435/tf-keras-layers-conv2d-is-not-worki
 # interpreter and environment
 - interpreter is python base - 3.7.5
 - environment is conda activate mss
+
+# make subdirectories work with setup.py
+https://www.youtube.com/watch?v=nk7UWUKlfGM&ab_channel=chinamatt&loop=0
+- make file setup.py with following content
+- make sure u RUN SETUP  TOOL IN BASE INTERPRETER -> CONDA ACTIVATE MSS AFTER -> OTHERWISE WONT WORK
+from setuptools import setup, find_packages
+setup(name="mss_project", version="1.0", packages=find_packages())
+pip install -e .
+pip uninstall myproject (for uninstall of project)
+-> makes you able to load all modules from main package within a module
+-> note that if you import main folder (package), all the code within runs, so make sure always use if name = main
