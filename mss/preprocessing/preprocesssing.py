@@ -281,48 +281,47 @@ class PreprocessingPipeline:
     def process(self):
         self.dataset_type = "train"
        
-        # for i in range(0,2): # for train, val, test data\
-        i=2
-        # self.dataset_type = "test"
-        if i == 1: 
-            self.dataset_type = "valid" 
-            self.saver.min_max_values_save_dir = self.dataset_type
-            
-        
-        if i == 2: 
-            self.dataset_type = "test"
-            self.saver.min_max_values_save_dir = self.dataset_type
-        
-        for j,track in enumerate(self.loader.load_musdb()[i]): #load_mus_db has train valid test 
-            # augment data here
-            # CANNOT AUGMENT BECAUSE track.audio file will not allow us to iterate over multiple datapoints 
-            
-            track.chunk_duration = self.chunk_duration
-            max_chunks = int(track.duration/track.chunk_duration) +1 # +1 captures last few seconds of song < chunk duration -> needs padding   
-
-            for k in range (0,max_chunks):   
-                track.chunk_start = k * track.chunk_duration           
-                mixture = (track.audio) # don't transpose it
-                vocal_target = (track.targets["vocals"].audio)
-                bass_target = (track.targets["bass"].audio)
-                drums_target = (track.targets["drums"].audio)
-                other_target = (track.targets["other"].audio)
-                # accompaniment = bass + drums + other
-                accompaniment_target = (track.targets["accompaniment"].audio)
-
-                multi_track_keys = ["mixture","vocals","bass","drums","other","accompaniment"]
-                multi_track_values = [mixture,vocal_target,bass_target,drums_target,other_target,accompaniment_target]      
-                multi_tracks = dict(zip(multi_track_keys,multi_track_values))          
-
-                # proces the audio segments
-                self._process_file(multi_tracks,j,k)
-                # print("min: ",self.minimum_val," max: ",self.maximum_val) #get min and max val for stft
-                # print(5/0)
+        for i in range(0,2): # for train, val, test data\
+            # self.dataset_type = "test"
+            if i == 1: 
+                self.dataset_type = "valid" 
+                self.saver.min_max_values_save_dir = self.dataset_type
                 
-        self.saver.save_min_max_values(self.min_max_values) # should be outside loop
-        print(f"empty segments in all {self.dataset_type}: {min_max_normalizer.empty_segments}")
-        min_max_normalizer.empty_segments = 0
-    print("finished.")
+            
+            if i == 2: 
+                self.dataset_type = "test"
+                self.saver.min_max_values_save_dir = self.dataset_type
+            
+            for j,track in enumerate(self.loader.load_musdb()[i]): #load_mus_db has train valid test 
+                # augment data here
+                # CANNOT AUGMENT BECAUSE track.audio file will not allow us to iterate over multiple datapoints 
+                
+                track.chunk_duration = self.chunk_duration
+                max_chunks = int(track.duration/track.chunk_duration) +1 # +1 captures last few seconds of song < chunk duration -> needs padding   
+
+                for k in range (0,max_chunks):   
+                    track.chunk_start = k * track.chunk_duration           
+                    mixture = (track.audio) # don't transpose it
+                    vocal_target = (track.targets["vocals"].audio)
+                    bass_target = (track.targets["bass"].audio)
+                    drums_target = (track.targets["drums"].audio)
+                    other_target = (track.targets["other"].audio)
+                    # accompaniment = bass + drums + other
+                    accompaniment_target = (track.targets["accompaniment"].audio)
+
+                    multi_track_keys = ["mixture","vocals","bass","drums","other","accompaniment"]
+                    multi_track_values = [mixture,vocal_target,bass_target,drums_target,other_target,accompaniment_target]      
+                    multi_tracks = dict(zip(multi_track_keys,multi_track_values))          
+
+                    # proces the audio segments
+                    self._process_file(multi_tracks,j,k)
+                    # print("min: ",self.minimum_val," max: ",self.maximum_val) #get min and max val for stft
+                    # print(5/0)
+                    
+            self.saver.save_min_max_values(self.min_max_values) # should be outside loop
+            print(f"empty segments in all {self.dataset_type}: {min_max_normalizer.empty_segments}")
+            min_max_normalizer.empty_segments = 0
+        print("finished.")
                 
 
     def _process_file(self,multi_tracks,j,k):

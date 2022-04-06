@@ -11,17 +11,17 @@ from scipy.io import wavfile
 from scipy.signal import wiener
 
 def main():
-    auto_encoder = AutoEncoder.load("modelpostfix2")  #model_spectr for first_source_sep
+    auto_encoder = AutoEncoder.load("model_train_on_batch_vocals")  #model_spectr for first_source_sep
     auto_encoder.summary()
-    b_train,y_train = load_fsdd("train") # note the amnt of datapoints load_fssd loads -> check the function
+    b_train,y_train = load_fsdd("test") # note the amnt of datapoints load_fssd loads -> check the function
     (np.min(b_train),np.max(b_train))
-    x_train=np.array(b_train[3:4])
+    x_train=np.array(b_train[10:11])
     # x_train += (np.random.rand(b_train.shape[0],b_train.shape[1],b_train.shape[2],b_train.shape[3])-0.5) * 0.3
     # print(x_train.shape)
-    x_train = auto_encoder.model.predict(b_train[3:4])
+    x_train = auto_encoder.model.predict(b_train[10:11])
     print(np.mean(np.abs((x_train-b_train[:1])**2)))
     print(np.min(x_train),np.max(x_train))
-    error = (x_train-b_train[:1])*5
+    error = (x_train-b_train[:1]) # *5 to exagerate
     # x_train +=error
     
     # plt.imshow(error[0],cmap="gray",vmin=-1,vmax=1)
@@ -59,7 +59,7 @@ def main():
     print("\n\n\n")
     # print(x_train.shape)
     # print(x_source.shape)
-    wavfile.write("example_test.wav",44100,x_source) 
+    wavfile.write("example_predicted_vocal_test.wav",44100,x_source) 
 
     # print(x_train.shape)
 

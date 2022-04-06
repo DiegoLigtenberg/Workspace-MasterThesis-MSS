@@ -118,27 +118,26 @@ class AutoEncoder():
         #                batch_size=batch_size,
         #                epochs=num_epoch,
         #                shuffle=True)
+
+        metrics_names = ['acc'] 
         self.dataloader = DataLoader(batch_size=batch_size,num_epoch=num_epoch)
 
         self.loss = []
-        progress_marker = int(max([self.dataloader.nr_batches / 30, 1]))
         
-        for epoch_nr in range(1, num_epoch+1):
-            print(f"epoch {epoch_nr} ", end="")
+        for epoch_nr in range(0, num_epoch):
+            pb_i = Progbar(self.dataloader.len_train_data, stateful_metrics=metrics_names)
+            print("\nepoch {}/{}".format(epoch_nr+1,num_epoch))
+            # print(f"epoch {epoch_nr} ", end="")
             # batch_start_time = get_start_time()
             for batch_nr in range(self.dataloader.nr_batches):
             # get source and target images
                 x_train, y_train = self.dataloader.load_data(batch_nr=batch_nr)
-                # y_train = x_train,dtype=tf.float64
-                # print(x_train.shape)
-                # print(y_train.shape)
-                # print(5/0)
-                # train batch
-                self.loss.append(self.model.train_on_batch(x_train, y_train)) 
-
-                # update progress bar based on number of batches
-                if batch_nr % progress_marker == 0: print("=", end="")
-                print(round(self.loss[-1],6))
+                loss = (self.model.train_on_batch(x_train, y_train)) 
+                self.loss.append(loss)                
+                values=[('train loss',loss)]  # add comma after last ) to add another metric!        
+                pb_i.add(batch_size, values=values)
+            self.dataloader.reset_counter() # makes it work after last epoch
+            self.save("model_train_on_batch_vocals")
 
         # self.model.fit_generator(generator=dataloader,steps_per_epoch=24,epochs=5,shuffle=False)
 

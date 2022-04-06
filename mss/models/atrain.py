@@ -16,7 +16,7 @@ from mss.utils.dataloader import natural_keys, atof
 
 LEARNING_RATE = 0.00005  #mnist 0.0001 
 BATCH_SIZE = 8
-EPOCHS = 30
+EPOCHS = 2
 LOAD_SPECTROGRAMS_PATH = "F:/Thesis"
 
 #https://stackoverflow.com/questions/43147983/could-not-create-cudnn-handle-cudnn-status-internal-error
@@ -139,7 +139,7 @@ def train(x_train,y_train,learning_rate,batch_size,epochs):
 
   variatonal_auto_encoder = AutoEncoder(
       input_shape=(2048, 128, 1),
-      conv_filters=(32, 64, 64, 64), # how many kernels you want per layer
+      conv_filters=(128, 128, 256, 128), # how many kernels you want per layer
       conv_kernels=(4, 4, 4, 4), # KERNEL SIZE SHOULD BE DIVISIBLE BY STRIDE! but only when upsampling! -> OTHERWISE CITY BLOCK PATTERN -> receptive field
       conv_strides=(2, 2, 2, 2), # probably also remove large stride size in beginning! UNET ENDS WITH 1x1 CONV BLOCK!
       latent_space_dim=128)
@@ -161,15 +161,17 @@ def main():
     x_train,y_train = load_fsdd(LOAD_SPECTROGRAMS_PATH) 
 
     # first training
-    variational_auto_encoder = train(x_train[:1],y_train[:1],0.0001,4,EPOCHS)    
-    variational_auto_encoder.save("modelpostfix2")
+    # variational_auto_encoder = train(x_train[:1],y_train[:1],0.0001,BATCH_SIZE,EPOCHS)    
+    # variational_auto_encoder.save("model_train_on_batch_vocals")
+    # 0.02 is already decent-ish
 
     # repeated training
-    # variational_auto_encoder = AutoEncoder.load("modelpostfix2")    
-    # LEARNING_RATE = 0.000003 
-    # variational_auto_encoder.compile(learning_rate=LEARNING_RATE)    
-    # variational_auto_encoder.train(x_train[:1],y_train[:1],1,EPOCHS*30)    
-    # variational_auto_encoder.save("modelpostfix2")
+    variational_auto_encoder = AutoEncoder.load("model_train_on_batch_vocals")    
+    LEARNING_RATE = 0.00001 
+    variational_auto_encoder.compile(learning_rate=LEARNING_RATE)   
+    
+    variational_auto_encoder.train(x_train[:1],y_train[:1],BATCH_SIZE,EPOCHS)    
+    variational_auto_encoder.save("model_train_on_batch_vocals")
 
 
     # variational_auto_encoder.save("model_skipcon")
