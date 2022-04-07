@@ -17,12 +17,16 @@ from mss.utils.dataloader import natural_keys, atof
 LEARNING_RATE = 0.00005  #mnist 0.0001 
 BATCH_SIZE = 8
 EPOCHS = 2
-LOAD_SPECTROGRAMS_PATH = "F:/Thesis"
+LOAD_SPECTROGRAMS_PATH = "G:/Thesis"
+# tf.keras.initalizer
 
 #https://stackoverflow.com/questions/43147983/could-not-create-cudnn-handle-cudnn-status-internal-error
 physical_devices = tf.config.experimental.list_physical_devices('GPU')
 assert len(physical_devices) > 0, "Not enough GPU hardware devices available"
 config = tf.config.experimental.set_memory_growth(physical_devices[0], True)
+
+initializer = tf.keras.initializers.TruncatedNormal(mean=0., stddev=1.)
+layer = tf.keras.layers.Dense(3, kernel_initializer=initializer)
 
 def load_mnist():
   # 60.000 training  -  10.000 testing
@@ -44,19 +48,19 @@ def load_fsdd(spectrograms_path):
   # THIS LOOP IS NOT WOrKING!!! MULTIPLE TIMES LOADING SAME FILE
   '''
 
-  filelist = glob.glob(os.path.join("F:/Thesis/"+spectrograms_path+"/mixture", '*'))
+  filelist = glob.glob(os.path.join("G:/Thesis/"+spectrograms_path+"/mixture", '*'))
   filelist.sort(key=natural_keys)
   for i, file in enumerate(filelist):
-    if i <50: # remove this when full dataset
+    if i <250: # remove this when full dataset
       # print(file) 
       normalized_spectrogram = np.load(file)
       x_train.append(normalized_spectrogram)
     else:
       break
-  filelist = glob.glob(os.path.join("F:/Thesis/"+spectrograms_path+"/mixture", '*'))
+  filelist = glob.glob(os.path.join("G:/Thesis/"+spectrograms_path+"/vocals", '*'))
   filelist.sort(key=natural_keys)
   for i, file in enumerate(filelist):
-    if i <50: # remove this when full dataset
+    if i <250: # remove this when full dataset
       # print(file) 
       normalized_spectrogram = np.load(file)
       y_train.append(normalized_spectrogram)
@@ -137,9 +141,17 @@ def train(x_train,y_train,learning_rate,batch_size,epochs):
   #   conv_strides=(2, 2, 2, 2), # probably also remove large stride size in beginning! UNET ENDS WITH 1x1 CONV BLOCK!
   #   latent_space_dim=128)
 
+  # model_train_on_batch_vocals batch size = 8 lr = 5e-7
+  # variatonal_auto_encoder = AutoEncoder(
+  #     input_shape=(2048, 128, 1),
+  #     conv_filters=(128, 128, 256, 128), # how many kernels you want per layer
+  #     conv_kernels=(4, 4, 4, 4), # KERNEL SIZE SHOULD BE DIVISIBLE BY STRIDE! but only when upsampling! -> OTHERWISE CITY BLOCK PATTERN -> receptive field
+  #     conv_strides=(2, 2, 2, 2), # probably also remove large stride size in beginning! UNET ENDS WITH 1x1 CONV BLOCK!
+  #     latent_space_dim=128)
+
   variatonal_auto_encoder = AutoEncoder(
       input_shape=(2048, 128, 1),
-      conv_filters=(128, 128, 256, 128), # how many kernels you want per layer
+      conv_filters=(64, 128, 256, 128), # how many kernels you want per layer
       conv_kernels=(4, 4, 4, 4), # KERNEL SIZE SHOULD BE DIVISIBLE BY STRIDE! but only when upsampling! -> OTHERWISE CITY BLOCK PATTERN -> receptive field
       conv_strides=(2, 2, 2, 2), # probably also remove large stride size in beginning! UNET ENDS WITH 1x1 CONV BLOCK!
       latent_space_dim=128)
@@ -159,19 +171,46 @@ def main():
 
     # load data    
     x_train,y_train = load_fsdd(LOAD_SPECTROGRAMS_PATH) 
+    BATCH_SIZE = 8
+    LEARNING_RATE = 3e-4
+    EPOCHS = 1
+
 
     # first training
-    # variational_auto_encoder = train(x_train[:1],y_train[:1],0.0001,BATCH_SIZE,EPOCHS)    
-    # variational_auto_encoder.save("model_train_on_batch_vocals")
-    # 0.02 is already decent-ish
-
-    # repeated training
-    variational_auto_encoder = AutoEncoder.load("model_train_on_batch_vocals")    
-    LEARNING_RATE = 0.00001 
-    variational_auto_encoder.compile(learning_rate=LEARNING_RATE)   
+    # for i in range(0,1):
+    #   variational_auto_encoder = train(x_train[:1],y_train[:1],LEARNING_RATE,batch_size=BATCH_SIZE,epochs=EPOCHS)   #0.003 
+    #   variational_auto_encoder.save("model_train_on_batch_vocals3")
+    # # # 0.02 is already decent-ish !!!!! 
+    # # print(5/0)
+     
+    LEARNING_RATE = 1e-3
+      
+    # print("new learnn rate:",LEARNING_RATE)
+    BATCH_SIZE = 8
+    for i in range(4):
+      variational_auto_encoder = AutoEncoder.load("model_train_on_batch_vocals3")   
+      variational_auto_encoder.compile(learning_rate=LEARNING_RATE)   
     
-    variational_auto_encoder.train(x_train[:1],y_train[:1],BATCH_SIZE,EPOCHS)    
-    variational_auto_encoder.save("model_train_on_batch_vocals")
+      variational_auto_encoder.train(x_train[:1],y_train[:1],BATCH_SIZE,EPOCHS)    
+      variational_auto_encoder.save("model_train_on_batch_vocals3")
+      # LEARNING_RATE/=2
+      # BATCH_SIZE=1
+      # LEARNING_RATE = 3e-4
+
+    LEARNING_RATE = 3e-4 #5e-7 
+    # repeated training
+    # for i in range (3):
+    #   variational_auto_encoder = AutoEncoder.load("model_train_on_batch_vocals2")    
+      
+      
+    #   print("new learnn rate:",LEARNING_RATE)
+    #   BATCH_SIZE = 8
+    #   variational_auto_encoder.compile(learning_rate=LEARNING_RATE)   
+    
+    #   variational_auto_encoder.train(x_train[:1],y_train[:1],BATCH_SIZE,EPOCHS//2)    
+    #   variational_auto_encoder.save("model_train_on_batch_vocals2")
+    #   LEARNING_RATE/=2
+    # 4 epoch
 
 
     # variational_auto_encoder.save("model_skipcon")

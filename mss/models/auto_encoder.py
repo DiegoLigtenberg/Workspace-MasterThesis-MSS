@@ -4,7 +4,6 @@ from re import M
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Input, Conv2D, Conv2DTranspose, ReLU, BatchNormalization, Flatten, Dense, Reshape, Activation, Concatenate
 from tensorflow.keras import backend as K
-from tensorflow import keras
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import MeanSquaredError
 import numpy as np
@@ -15,7 +14,16 @@ from mss.utils.dataloader import DataLoader
 from tensorflow.keras.utils import Progbar
 
 import tensorflow as tf
+# import keras as keras
 from pathlib import Path
+import matplotlib.pyplot as plt
+import random
+
+
+
+
+
+
 
 class AutoEncoder():
     """
@@ -46,12 +54,20 @@ class AutoEncoder():
         self._num_conv_layers = len(conv_filters)  # dimension of amnt kernels
         self._shape_before_bottleneck = None
         self._model_input = None
+        tf.compat.v1.disable_eager_execution() # works for random seed
+        tf.random.set_seed(1)
+        # self.weight_initializer = tf.initializers. TruncatedNormal(mean=0., stddev=1/1024)
+        self.weight_initializer = tf.keras.initializers.TruncatedNormal(
+            mean=0.0, stddev=0.05, seed=None
+        )
+
         '''private and protected does not exist in python, so this is just convention, but not neccesary!'''
         # _variables or _functions are protected variables/functions and can only be used in subclasses, but can be overwritten by subclasses
         # __variables or __functions are private classes and can not EASILY be used in other classes/subclasses because the name does not show up on top!
         self._build()
 
     def save(self, save_folder="."):
+        print("saved model:\t",save_folder)
         self._create_folder_if_it_doesnt_exist(save_folder)
         self._save_parameters(save_folder)
         self._save_weights(save_folder)
@@ -131,13 +147,24 @@ class AutoEncoder():
             # batch_start_time = get_start_time()
             for batch_nr in range(self.dataloader.nr_batches):
             # get source and target images
+                # try:
                 x_train, y_train = self.dataloader.load_data(batch_nr=batch_nr)
                 loss = (self.model.train_on_batch(x_train, y_train)) 
                 self.loss.append(loss)                
-                values=[('train loss',loss)]  # add comma after last ) to add another metric!        
+                values=[('train loss',loss),("mean loss",np.mean(self.loss))]  # add comma after last ) to add another metric!        
                 pb_i.add(batch_size, values=values)
+                # except:
+                    # pass
+                
+            self.dataloader.shuffle_data()
+            # random.shuffle(self.dataloader.filelist_X)
+            # random.shuffle(self.dataloader.filelist_Y)
             self.dataloader.reset_counter() # makes it work after last epoch
-            self.save("model_train_on_batch_vocals")
+            self.loss = []
+            # plt.plot(self.loss)
+            # plt.show()
+            # self.save("model_train_on_batch_vocals")
+            # self.save("model_train_on_batch_vocals2")
 
         # self.model.fit_generator(generator=dataloader,steps_per_epoch=24,epochs=5,shuffle=False)
 
@@ -147,17 +174,18 @@ class AutoEncoder():
         self._build_autoencoder()
 
     def _add_encoder_input(self):
-        '''returns Input Object - Keras Input Layer object'''
-        return Input(shape=self.input_shape, name="encoder_input")  # returns the input shape of your data
+        '''returns Input Object - Keras Input Layer object'''        
+        self.encoder_list = []
+        inp = Input(shape=self.input_shape, name="encoder_input")
+        self.encoder_list.append(inp)
+        return  inp # returns the input shape of your data
 
     def _add_conv_layers(self, encoder_input):
         '''Creates all convolutional blocks in the encoder'''
         model = encoder_input
-        self.encoder_list = []
         # layer_index tells us at which layer we pass in the specific conv layer
         for layer_index in range(self._num_conv_layers):
             # will now be a graph of layers
-
             model = self._add_conv_layer(layer_index, model)
         return model
 
@@ -174,11 +202,12 @@ class AutoEncoder():
             # (int) amount of kernels we use -> output dimensionality of this conv layer -> how many filters we use
             filters=self.conv_filters[layer_index],
             # filter size over input (4 x 4) -> can also be rectengular
-            kernel_size=self.conv_kernels[layer_index],
+            kernel_size=(self.conv_kernels[layer_index],self.conv_kernels[layer_index]),
             strides=self.conv_strides[layer_index],
             # keeps dimensionality same -> adds 0's outside the "image" to make w/e stride u pick work
             padding="same",
-            name=f"encoder_conv_layer{layer_number}"
+            name=f"encoder_conv_layer{layer_number}",
+            kernel_initializer=self.weight_initializer
         )
 
         '''adding Conv, Relu, and Batch normalisation to each layer -> x is now the model'''
@@ -198,8 +227,7 @@ class AutoEncoder():
         self._shape_before_bottleneck = K.int_shape(model)[
                                         1:]  # [2, 7 ,7 , 32] # 4 dimensional array ( batch size x width x height x channels )
         model = Flatten()(model)
-        model = Dense(self.latent_space_dim, name="encoder_output")(
-            model)  # dimensionality of latent space -> outputshape
+        model = Dense(self.latent_space_dim, name="encoder_output")(model)  # dimensionality of latent space -> outputshape
         # each output layer in dense layer is value between 0 and 1, if the value is highest -> then we pick that output
         # for duo classification you have 1 layer between 0 and 1 , if the value is > 0.5 then we pick that output
 
@@ -216,6 +244,7 @@ class AutoEncoder():
 
     def _add_reshape_layer(self, dense_layer):
         reshape_layer = Reshape(self._shape_before_bottleneck)(dense_layer)
+        reshape_layer = Concatenate(axis=3)([self.encoder_list[len(self.encoder_list)-1], reshape_layer])  # U-net skip connections      
         return reshape_layer
 
     def _add_conv_transpose_layers(self, x):
@@ -230,10 +259,11 @@ class AutoEncoder():
         layer_number = self._num_conv_layers - layer_index
         conv_transpose_layer = Conv2DTranspose(
             filters=self.conv_filters[layer_index ],
-            kernel_size=self.conv_kernels[layer_index],
+            kernel_size=(self.conv_kernels[layer_index],self.conv_kernels[layer_index]),
             strides=self.conv_strides[layer_index],
             padding="same",
-            name=f"decoder_conv_transpose_layer_{layer_number}"
+            name=f"decoder_conv_transpose_layer_{layer_number}",
+            kernel_initializer=self.weight_initializer
         )
 
         x = conv_transpose_layer(x)
@@ -241,7 +271,7 @@ class AutoEncoder():
             pass
         x = ReLU(name=f"decoder_relu_{layer_number}")(x)
         x = BatchNormalization(name=f"decoder_bn_{layer_number}")(x)
-        x = Concatenate(axis=3)([self.encoder_list[layer_index - 1], x])  # U-net skip connections        
+        x = Concatenate(axis=3)([self.encoder_list[layer_index ], x])  # U-net skip connections        
         return x
 
     def _add_decoder_output(self, x):
@@ -253,9 +283,24 @@ class AutoEncoder():
             # first that we skipped on _add_conv_transpose_layer
             strides=self.conv_strides[0],
             padding="same",
-            name=f"decoder_conv_transpose_layer_{self._num_conv_layers}"
+            name=f"decoder_conv_transpose_layer_{self._num_conv_layers}",
+            kernel_initializer=self.weight_initializer
         )
         x = conv_transpose_layer(x)
+        x = Concatenate(axis=3)([self.encoder_list[0], x])  # U-net skip connections
+        
+        conv_transpose_layer = Conv2DTranspose(
+            # [ 24 x 24 x 1] # number of channels = 1 thus filtersd is 1
+            filters=1,
+            # first that we skipped on _add_conv_transpose_layer
+            kernel_size=(1,1),
+            # first that we skipped on _add_conv_transpose_layer
+            strides=(1,1),
+            padding="same",
+            name=f"decoder_conv_transpose_layer_{self._num_conv_layers+1}",
+            kernel_initializer=self.weight_initializer
+        )
+        x = conv_transpose_layer(x)   
         output_layer = Activation("tanh", name="tanh_output_layer")(x) # pogchamp rob - sigmoid -> tanh because normalisation
         return output_layer
 
@@ -283,11 +328,11 @@ class AutoEncoder():
 
 def main():
     auto_encoder = AutoEncoder(
-    input_shape=(28, 28, 1),
+    input_shape=(112, 112, 1),
     conv_filters=(32, 64, 64, 64),
     conv_kernels=(3, 3, 3, 3),
     # stride of 2 is downsampling the data -> halving it!
-    conv_strides=(1, 2, 2, 1),
+    conv_strides=(2, 2, 2, 2),
     latent_space_dim=2)
 
     auto_encoder.summary(save_image=False)
