@@ -14,14 +14,14 @@ from scipy.signal import wiener
 def main():
     auto_encoder = AutoEncoder.load("model_train_on_batch_vocals3")  #model_spectr for first_source_sep
     auto_encoder.summary()
-    b_train,y_train = load_fsdd("train") # note the amnt of datapoints load_fssd loads -> check the function
+    b_train,y_train = load_fsdd("test") # note the amnt of datapoints load_fssd loads -> check the function
     (np.min(b_train),np.max(b_train))
 
-    sound = 0
+    sound = 77
 
-    x_train=np.array(b_train[sound:sound+1])
+    x_train=np.array(y_train[sound:sound+1])
     # x_train += (np.random.rand(b_train.shape[0],b_train.shape[1],b_train.shape[2],b_train.shape[3])-0.5) * 0.3
-    # print(x_train.shape)
+    print(x_train.shape)
     x_train = auto_encoder.model.predict(b_train[sound:sound+1])
     print("error\t\t",np.mean(np.abs((x_train[:1]-y_train[sound:sound+1])**2)))
     print("min and max val:",np.min(x_train),np.max(x_train))

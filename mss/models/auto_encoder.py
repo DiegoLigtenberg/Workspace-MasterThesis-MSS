@@ -155,7 +155,10 @@ class AutoEncoder():
                 pb_i.add(batch_size, values=values)
                 # except:
                     # pass
-                
+            # validation loss
+            # self.dataloader.load_data(batch_nr=batch_nr,validation=True)
+            # self.model.predict(x_train)
+
             self.dataloader.shuffle_data()
             # random.shuffle(self.dataloader.filelist_X)
             # random.shuffle(self.dataloader.filelist_Y)
@@ -164,7 +167,8 @@ class AutoEncoder():
             # plt.plot(self.loss)
             # plt.show()
             # self.save("model_train_on_batch_vocals")
-            # self.save("model_train_on_batch_vocals2")
+            if epoch_nr%3 == 0:
+                self.save(f"model_train_on_batch_vocals3-{epoch_nr}")
 
         # self.model.fit_generator(generator=dataloader,steps_per_epoch=24,epochs=5,shuffle=False)
 

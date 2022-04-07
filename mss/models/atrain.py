@@ -173,7 +173,7 @@ def main():
     x_train,y_train = load_fsdd(LOAD_SPECTROGRAMS_PATH) 
     BATCH_SIZE = 8
     LEARNING_RATE = 3e-4
-    EPOCHS = 1
+    EPOCHS = 50
 
 
     # first training
@@ -183,16 +183,17 @@ def main():
     # # # 0.02 is already decent-ish !!!!! 
     # # print(5/0)
      
-    LEARNING_RATE = 1e-3
+    LEARNING_RATE = 5e-4
       
     # print("new learnn rate:",LEARNING_RATE)
     BATCH_SIZE = 8
-    for i in range(4):
+    
+    for i in range(1):
       variational_auto_encoder = AutoEncoder.load("model_train_on_batch_vocals3")   
       variational_auto_encoder.compile(learning_rate=LEARNING_RATE)   
     
       variational_auto_encoder.train(x_train[:1],y_train[:1],BATCH_SIZE,EPOCHS)    
-      variational_auto_encoder.save("model_train_on_batch_vocals3")
+      variational_auto_encoder.save("model_train_on_batch_vocals3-final")
       # LEARNING_RATE/=2
       # BATCH_SIZE=1
       # LEARNING_RATE = 3e-4
