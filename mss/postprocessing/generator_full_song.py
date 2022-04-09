@@ -15,11 +15,11 @@ from scipy.signal import wiener
 def main():
     auto_encoder = AutoEncoder.load("model_train_on_batch_vocals3-34-10467.0")  #model_spectr for first_source_sep
     auto_encoder.summary()
-    b_train,y_train = load_fsdd("train") # note the amnt of datapoints load_fssd loads -> check the function
+    b_train,y_train = load_fsdd("test") # note the amnt of datapoints load_fssd loads -> check the function
     (np.min(b_train),np.max(b_train))
 
     total_track = []
-    for i in range(220,240):
+    for i in range(110,140):
         sound = i #132 test
 
         # weights = np.full_like(b_train[:1],1/prod(b_train[:1].shape))
@@ -98,7 +98,7 @@ def main():
     total_track = np.array(total_track)
     total_track = total_track.flatten()
     print((total_track.shape))
-    wavfile.write("test_pred.wav",44100,total_track) 
+    wavfile.write("error.wav",44100,total_track) 
 
     # print(x_train.shape)
 

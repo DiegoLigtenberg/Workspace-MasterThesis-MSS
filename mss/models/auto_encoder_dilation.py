@@ -2,7 +2,7 @@ from encodings.utf_8 import encode
 from enum import auto
 from re import M
 from tensorflow.keras import Model
-from tensorflow.keras.layers import Input, Conv2D, Conv2DTranspose, ReLU, BatchNormalization, Flatten, Dense, Reshape, Activation, Concatenate
+from tensorflow.keras.layers import Input, Conv2D, Conv2DTranspose, Activation, BatchNormalization, Flatten, Dense, Reshape, Activation, Concatenate,MaxPool2D,UpSampling2D
 from tensorflow.keras import backend as K
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import MeanSquaredError
@@ -58,7 +58,7 @@ class AutoEncoder():
         tf.random.set_seed(1)
         # self.weight_initializer = tf.initializers. TruncatedNormal(mean=0., stddev=1/1024)
         self.weight_initializer = tf.keras.initializers.TruncatedNormal(
-            mean=0.0, stddev=0.05, seed=None
+            mean=0, stddev=0.01, seed=None
         )
 
         '''private and protected does not exist in python, so this is just convention, but not neccesary!'''
@@ -139,7 +139,7 @@ class AutoEncoder():
         self.dataloader = DataLoader(batch_size=batch_size,num_epoch=num_epoch)
 
         self.loss = []
-        meanloss = 0
+        
         for epoch_nr in range(0, num_epoch):
             pb_i = Progbar(self.dataloader.len_train_data, stateful_metrics=metrics_names)
             print("\nepoch {}/{}".format(epoch_nr+1,num_epoch))
@@ -150,13 +150,8 @@ class AutoEncoder():
                 try:
                     x_train, y_train = self.dataloader.load_data(batch_nr=batch_nr)
                     loss = self.model.train_on_batch(x_train, y_train) 
-                    loss2 = float(str(loss)[4:9])
-
-                    self.loss.append(loss)     
-                    meanloss = np.mean(self.loss) 
-                    meanloss = float(str(meanloss)[4:9])
-
-                    values=[('train loss',loss2),("mean loss",meanloss)]  # add comma after last ) to add another metric!        
+                    self.loss.append(loss)                
+                    values=[('train loss',loss),("mean loss",np.mean(self.loss))]  # add comma after last ) to add another metric!        
                     pb_i.add(batch_size, values=values)
                     # print("\n",np.mean(self.loss))
                 except:
@@ -174,9 +169,8 @@ class AutoEncoder():
             # plt.show()
             # self.save("model_train_on_batch_vocals")
             if epoch_nr%1 == 0:
-                # pass
-                self.save(f"model_train_on_batch_vocals3-{epoch_nr}-{round(meanloss,5)}")
                 pass
+                # self.save(f"model_train_on_batch_vocals3-{epoch_nr}-{round(np.mean(self.loss),4)}")
             self.loss = []
 
         # self.model.fit_generator(generator=dataloader,steps_per_epoch=24,epochs=5,shuffle=False)
@@ -220,7 +214,8 @@ class AutoEncoder():
             # keeps dimensionality same -> adds 0's outside the "image" to make w/e stride u pick work
             padding="same",
             name=f"encoder_conv_layer{layer_number}",
-            kernel_initializer=self.weight_initializer
+            kernel_initializer=self.weight_initializer,
+            dilation_rate=1
         )
 
         '''adding Conv, Relu, and Batch normalisation to each layer -> x is now the model'''
@@ -228,8 +223,9 @@ class AutoEncoder():
         # add the convolutional layers to whatever x was
         model = conv_layer(model)
 
-        model = ReLU(name=f"encoder_relu_{layer_number}")(model)
+        model = Activation("gelu",name=f"encoder_relu_{layer_number}")(model)
         model = BatchNormalization(name=f"encoder_bn_{layer_number}")(model)
+        model = MaxPool2D((2,2))(model)
         # print("shape",model)
         self.encoder_list.append(model)
 
@@ -240,7 +236,8 @@ class AutoEncoder():
         self._shape_before_bottleneck = K.int_shape(model)[
                                         1:]  # [2, 7 ,7 , 32] # 4 dimensional array ( batch size x width x height x channels )
         model = Flatten()(model)
-        model = Dense(self.latent_space_dim, name="encoder_output")(model)  # dimensionality of latent space -> outputshape
+        model = Dense(self.latent_space_dim,activation="gelu", name="encoder_output")(model)  # dimensionality of latent space -> outputshape
+        model = Dense(self.latent_space_dim,activation="gelu", name="encoder_outp2ut")(model)
         # each output layer in dense layer is value between 0 and 1, if the value is highest -> then we pick that output
         # for duo classification you have 1 layer between 0 and 1 , if the value is > 0.5 then we pick that output
 
@@ -280,9 +277,10 @@ class AutoEncoder():
         )
 
         x = conv_transpose_layer(x)
+        x= UpSampling2D(size=(2,2))(x)
         if layer_index == 1:
             pass
-        x = ReLU(name=f"decoder_relu_{layer_number}")(x)
+        x = Activation("gelu",name=f"decoder_relu_{layer_number}")(x)
         x = BatchNormalization(name=f"decoder_bn_{layer_number}")(x)
         x = Concatenate(axis=3)([self.encoder_list[layer_index ], x])  # U-net skip connections        
         return x
@@ -300,6 +298,8 @@ class AutoEncoder():
             kernel_initializer=self.weight_initializer
         )
         x = conv_transpose_layer(x)
+        
+        x= UpSampling2D(size=(2,2))(x)
         x = Concatenate(axis=3)([self.encoder_list[0], x])  # U-net skip connections
         
         conv_transpose_layer = Conv2DTranspose(
@@ -313,7 +313,7 @@ class AutoEncoder():
             name=f"decoder_conv_transpose_layer_{self._num_conv_layers+1}",
             kernel_initializer=self.weight_initializer
         )
-        x = conv_transpose_layer(x)   
+        x = conv_transpose_layer(x)        
         output_layer = Activation("tanh", name="tanh_output_layer")(x) # pogchamp rob - sigmoid -> tanh because normalisation
         return output_layer
 
@@ -341,11 +341,11 @@ class AutoEncoder():
 
 def main():
     auto_encoder = AutoEncoder(
-    input_shape=(112, 112, 1),
-    conv_filters=(32, 64, 64, 64),
+    input_shape=(128, 128, 1),
+    conv_filters=(32, 64, 64 ,64),
     conv_kernels=(3, 3, 3, 3),
     # stride of 2 is downsampling the data -> halving it!
-    conv_strides=(2, 2, 2, 2),
+    conv_strides=(1, 1, 1 ,1),
     latent_space_dim=2)
 
     auto_encoder.summary(save_image=False)

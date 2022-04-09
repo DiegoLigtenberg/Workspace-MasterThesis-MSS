@@ -33,7 +33,7 @@ class DataLoader():
         extensions = ["mixture","vocals","bass","drums","other","accompaniment"]
         self.filelist_X = glob.glob(os.path.join("G:/Thesis/train/mixture", '*'))
         self.filelist_X.sort(key=natural_keys)
-        self.filelist_X = self.filelist_X  #[0:10]
+        self.filelist_X = self.filelist_X #[0:10]
         
      
         self.filelist_Y = glob.glob(os.path.join("G:/Thesis/train/vocals", '*'))
@@ -88,7 +88,7 @@ class DataLoader():
         merge = list(zip(self.filelist_X,self.filelist_Y))
         random.shuffle(merge)
         self.filelist_X, self.filelist_Y = zip(*merge)
-        print(self.filelist_X[0:2],self.filelist_Y[0:2])
+        # print(self.filelist_X[0:2],self.filelist_Y[0:2])
 
     def reset_counter(self):
         global counter

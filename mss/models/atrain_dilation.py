@@ -10,7 +10,7 @@ import glob
 import re
 
 # module imports
-from mss.models.auto_encoder import AutoEncoder
+from mss.models.auto_encoder_dilation import AutoEncoder
 from mss.utils.dataloader import natural_keys, atof
 # from auto_encoder_vanilla import VariationalAutoEncoder
 
@@ -25,8 +25,6 @@ physical_devices = tf.config.experimental.list_physical_devices('GPU')
 assert len(physical_devices) > 0, "Not enough GPU hardware devices available"
 config = tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
-initializer = tf.keras.initializers.TruncatedNormal(mean=0., stddev=1.)
-layer = tf.keras.layers.Dense(3, kernel_initializer=initializer)
 
 def load_mnist():
   # 60.000 training  -  10.000 testing
@@ -151,9 +149,9 @@ def train(x_train,y_train,learning_rate,batch_size,epochs):
 
   variatonal_auto_encoder = AutoEncoder(
       input_shape=(2048, 128, 1),
-      conv_filters=(64, 128, 256, 512), # how many kernels you want per layer
+      conv_filters=(64, 128, 256, 128), # how many kernels you want per layer
       conv_kernels=(4, 4, 4, 4), # KERNEL SIZE SHOULD BE DIVISIBLE BY STRIDE! but only when upsampling! -> OTHERWISE CITY BLOCK PATTERN -> receptive field
-      conv_strides=(2, 2, 2, 2), # probably also remove large stride size in beginning! UNET ENDS WITH 1x1 CONV BLOCK!
+      conv_strides=(1, 1, 1, 1), # probably also remove large stride size in beginning! UNET ENDS WITH 1x1 CONV BLOCK!
       latent_space_dim=128)
 
     # the more complex the model -> the lower the lr should be
@@ -171,34 +169,34 @@ def main():
 
     # load data    
     x_train,y_train = load_fsdd(LOAD_SPECTROGRAMS_PATH) 
-    BATCH_SIZE = 8
+    BATCH_SIZE = 1
     LEARNING_RATE = 3e-4
-    EPOCHS = 50
+    EPOCHS = 100
 
 
     # first training
-    # for i in range(0,1):
-    #   variational_auto_encoder = train(x_train[:1],y_train[:1],LEARNING_RATE,batch_size=BATCH_SIZE,epochs=EPOCHS)   #0.003 
-    #   variational_auto_encoder.save("model_train_on_batch_vocals3")
+    for i in range(0,1):
+      variational_auto_encoder = train(x_train[:1],y_train[:1],LEARNING_RATE,batch_size=BATCH_SIZE,epochs=EPOCHS)   #0.003 
+      variational_auto_encoder.save("variance_scaling")
     # # # 0.02 is already decent-ish !!!!! 
     # # print(5/0)
      
-    LEARNING_RATE = 3e-5
+    LEARNING_RATE = 7e-4
       
     # print("new learnn rate:",LEARNING_RATE)
-    BATCH_SIZE = 8
-    print(LEARNING_RATE)
-    for i in range(1):
-      variational_auto_encoder = AutoEncoder.load("model_train_on_batch_vocals3-34-10467.0")   
-      variational_auto_encoder.compile(learning_rate=LEARNING_RATE)   
+    BATCH_SIZE = 1
     
-      variational_auto_encoder.train(x_train[:1],y_train[:1],BATCH_SIZE,EPOCHS)    
-      variational_auto_encoder.save("model_train_on_batch_vocals3-final")
+    # for i in range(1):
+    #   variational_auto_encoder = AutoEncoder.load("model_train_on_batch_vocals3-final")   
+    #   variational_auto_encoder.compile(learning_rate=LEARNING_RATE)   
+    
+    #   variational_auto_encoder.train(x_train[:1],y_train[:1],BATCH_SIZE,EPOCHS)    
+    #   variational_auto_encoder.save("model_train_on_batch_vocals3-final")
       # LEARNING_RATE/=2
       # BATCH_SIZE=1
       # LEARNING_RATE = 3e-4
 
-    # LEARNING_RATE = 5e-3 #5e-7 
+    LEARNING_RATE = 5e-3 #5e-7 
     # repeated training
     # for i in range (3):
     #   variational_auto_encoder = AutoEncoder.load("model_train_on_batch_vocals2")    
