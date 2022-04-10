@@ -11,14 +11,16 @@ import os
 import pickle
 
 from mss.utils.dataloader import DataLoader
+from mss.utils.visualisation import visualize_loss
 from tensorflow.keras.utils import Progbar
 
 import tensorflow as tf
 # import keras as keras
 from pathlib import Path
-import matplotlib.pyplot as plt
+
 import random
 from math import prod
+
 
 
 
@@ -127,59 +129,69 @@ class AutoEncoder():
         mse_loss = MeanSquaredError()
         self.model.compile(optimizer=optimizer, loss=mse_loss)
 
-    def train(self, xx_train, yy_train, batch_size, num_epoch):
+    def train(self,x_train,y_train,batch_size,num_epoch):
         # since we try to reconstruct the input, the output y_train is basically also x_train
         # y_train=x_train
-        # self.model.fit(x_train, y_train,
-        #                batch_size=batch_size,
-        #                epochs=num_epoch,
-        #                shuffle=True)
+        self.model.fit(x_train, y_train,
+                       batch_size=batch_size,
+                       epochs=num_epoch,
+                       shuffle=True)
 
-        metrics_names = ['acc'] 
+    def train_on_batch(self, batch_size, num_epoch):
+        metrics_names = ['train loss','mean loss','val_loss','mean val_loss'] 
         self.dataloader = DataLoader(batch_size=batch_size,num_epoch=num_epoch)
 
         self.loss = []
         meanloss = 0
+
+        self.val_loss_m = []
+        meanloss_val = 0
+        val_loss2 = 0
+
+        total_train_loss = []
+        total_val_loss = []
+        try:
+            print("loaded loss files")
+            total_train_loss = list(np.load("visualisation/total_train_loss.npy"))
+            total_val_loss = list(np.load("visualisation/total_val_loss.npy"))
+        except:
+            print("no file of previous loss yet")
+
         for epoch_nr in range(0, num_epoch):
             pb_i = Progbar(self.dataloader.len_train_data, stateful_metrics=metrics_names)
             print("\nepoch {}/{}".format(epoch_nr+1,num_epoch))
-            # print(f"epoch {epoch_nr} ", end="")
-            # batch_start_time = get_start_time()
             for batch_nr in range(self.dataloader.nr_batches):
-            # get source and target images
                 try:
                     x_train, y_train = self.dataloader.load_data(batch_nr=batch_nr)
                     loss = self.model.train_on_batch(x_train, y_train) 
                     loss2 = float(str(loss)[4:9])
-
                     self.loss.append(loss)     
+                    total_train_loss.append(loss)
                     meanloss = np.mean(self.loss) 
                     meanloss = float(str(meanloss)[4:9])
-
-                    values=[('train loss',loss2),("mean loss",meanloss)]  # add comma after last ) to add another metric!        
+                    if  batch_nr % 10 == 0 :
+                        x_val, y_val = self.dataloader.load_val(batch_nr=batch_nr)
+                        val_loss = self.model.train_on_batch(x_val, y_val) 
+                        val_loss2 = float(str(val_loss)[4:9])
+                        self.val_loss_m.append(val_loss)
+                        total_val_loss.append(val_loss)                        
+                        meanloss_val = np.mean(self.val_loss_m)
+                        meanloss_val = float(str(meanloss_val)[4:9])
+                    values=[('train loss',loss2),("mean loss",meanloss),("val_loss",val_loss2),("mean val_loss",meanloss_val)]  # add comma after last ) to add another metric!        
                     pb_i.add(batch_size, values=values)
-                    # print("\n",np.mean(self.loss))
                 except:
                     pass
-            # validation loss
-            # self.dataloader.load_data(batch_nr=batch_nr,validation=True)
-            # self.model.predict(x_train)
 
             self.dataloader.shuffle_data()
-            # random.shuffle(self.dataloader.filelist_X)
-            # random.shuffle(self.dataloader.filelist_Y)
-            self.dataloader.reset_counter() # makes it work after last epoch
+            self.dataloader.reset_counter() # makes it work after last epoch            
+            visualize_loss(total_train_loss,total_val_loss)
             
-            # plt.plot(self.loss)
-            # plt.show()
-            # self.save("model_train_on_batch_vocals")
             if epoch_nr%1 == 0:
-                # pass
                 self.save(f"model_train_on_batch_vocals3-{epoch_nr}-{round(meanloss,5)}")
                 pass
             self.loss = []
+            self.val_loss_m = []
 
-        # self.model.fit_generator(generator=dataloader,steps_per_epoch=24,epochs=5,shuffle=False)
 
     def _build(self):
         # self._build_encoder()

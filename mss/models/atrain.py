@@ -151,7 +151,7 @@ def train(x_train,y_train,learning_rate,batch_size,epochs):
 
   variatonal_auto_encoder = AutoEncoder(
       input_shape=(2048, 128, 1),
-      conv_filters=(64, 128, 256, 512), # how many kernels you want per layer
+      conv_filters=(64, 128, 256, 128), # how many kernels you want per layer
       conv_kernels=(4, 4, 4, 4), # KERNEL SIZE SHOULD BE DIVISIBLE BY STRIDE! but only when upsampling! -> OTHERWISE CITY BLOCK PATTERN -> receptive field
       conv_strides=(2, 2, 2, 2), # probably also remove large stride size in beginning! UNET ENDS WITH 1x1 CONV BLOCK!
       latent_space_dim=128)
@@ -173,7 +173,7 @@ def main():
     x_train,y_train = load_fsdd(LOAD_SPECTROGRAMS_PATH) 
     BATCH_SIZE = 8
     LEARNING_RATE = 3e-4
-    EPOCHS = 50
+    EPOCHS = 70
 
 
     # first training
@@ -190,9 +190,8 @@ def main():
     print(LEARNING_RATE)
     for i in range(1):
       variational_auto_encoder = AutoEncoder.load("model_train_on_batch_vocals3-34-10467.0")   
-      variational_auto_encoder.compile(learning_rate=LEARNING_RATE)   
-    
-      variational_auto_encoder.train(x_train[:1],y_train[:1],BATCH_SIZE,EPOCHS)    
+      variational_auto_encoder.compile(learning_rate=LEARNING_RATE)       
+      variational_auto_encoder.train_on_batch(BATCH_SIZE,EPOCHS)    
       variational_auto_encoder.save("model_train_on_batch_vocals3-final")
       # LEARNING_RATE/=2
       # BATCH_SIZE=1

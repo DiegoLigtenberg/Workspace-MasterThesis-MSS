@@ -16,22 +16,24 @@ import tensorflow as tf
 # )
 # print(a)
 
-tf.compat.v1.disable_eager_execution() 
-import random
-from tensorflow.keras.losses import MeanSquaredError
-y_true = np.array([[1., 1.], [1., 1.]])
-y_pred = np.array([[1., 1.], [0., 0.]])
+print(8%(8*4))
 
-mse = MeanSquaredError()
-mse = mse(y_true,y_pred,sample_weight = np.array([1,0]))
-mse = mse.eval(session=tf.compat.v1.Session())
-print(mse)
-print(5/0)
-c = list(zip(a, b))
+# tf.compat.v1.disable_eager_execution() 
+# import random
+# from tensorflow.keras.losses import MeanSquaredError
+# y_true = np.array([[1., 1.], [1., 1.]])
+# y_pred = np.array([[1., 1.], [0., 0.]])
 
-random.shuffle(c)
+# mse = MeanSquaredError()
+# mse = mse(y_true,y_pred,sample_weight = np.array([1,0]))
+# mse = mse.eval(session=tf.compat.v1.Session())
+# print(mse)
+# print(5/0)
+# c = list(zip(a, b))
 
-a, b = zip(*c)
+# random.shuffle(c)
+
+# a, b = zip(*c)
 
 # print (a)
 # print (b)

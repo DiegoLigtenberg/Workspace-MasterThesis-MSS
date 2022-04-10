@@ -24,6 +24,7 @@ def natural_keys(text):
 
      
 counter = 0 
+counter_val = 0
 shape = None   
 class DataLoader():
     def __init__(self,batch_size,num_epoch) -> None:
@@ -34,19 +35,20 @@ class DataLoader():
         self.filelist_X = glob.glob(os.path.join("G:/Thesis/train/mixture", '*'))
         self.filelist_X.sort(key=natural_keys)
         self.filelist_X = self.filelist_X #[0:10]
-        
      
         self.filelist_Y = glob.glob(os.path.join("G:/Thesis/train/vocals", '*'))
         self.filelist_Y.sort(key=natural_keys)        
         self.filelist_Y = self.filelist_Y #[0:10]
 
-        self.shuffle_data()
-        # print(self.filelist_X[0:2],self.filelist_Y[0:2])
-        # merge = zip(self.filelist_X,self.filelist_Y)
-        # self.filelist_X, self.filelist_Y = zip(*merge)
+        self.filelist_X_V = glob.glob(os.path.join("G:/Thesis/valid/mixture", '*'))
+        self.filelist_X_V.sort(key=natural_keys)
+        self.filelist_X_V = self.filelist_X_V #[0:10]
+     
+        self.filelist_Y_V = glob.glob(os.path.join("G:/Thesis/valid/vocals", '*'))
+        self.filelist_Y_V.sort(key=natural_keys)        
+        self.filelist_Y_V = self.filelist_Y_V #[0:10]
 
-        # random.shuffle(self.filelist_X)
-        # random.shuffle(self.filelist_X)
+        self.shuffle_data()
 
         self.len_train_data = len(self.filelist_X)
         self.nr_batches = int(self.len_train_data/self.batch_size)  #-50 is because currently end songs are buged.
@@ -62,6 +64,7 @@ class DataLoader():
         #     counter = 0
         x_train = []
         y_train = []
+
         '''SHOULD REMOVE -8 this  is weird???'''
         for i in range(batch_nr,batch_nr+self.batch_size): # all batches we want to take
             # print(counter)
@@ -84,17 +87,52 @@ class DataLoader():
         y_train = np.array(y_train)
         return x_train,y_train
 
+    def load_val(self,batch_nr):
+        global counter_val
+        # if batch_nr >= self.len_train_data-16:
+        #     print(counter)
+        #     counter = 0
+        x_val = []
+        y_val = []
+
+        '''SHOULD REMOVE -8 this  is weird???'''
+        for i in range(batch_nr,batch_nr+self.batch_size): # all batches we want to take
+            file_X = self.filelist_X_V[counter_val]
+            file_Y = self.filelist_Y_V[counter_val]
+            normalized_spectrogram_X = np.load(file_X)
+            normalized_spectrogram_Y = np.load(file_Y)
+                
+            if list(normalized_spectrogram_X.shape) == shape: # if not, then padding did not work correcty!
+                x_val.append(normalized_spectrogram_X)
+                y_val.append(normalized_spectrogram_Y)
+            # if counter <4:
+            counter_val+=1
+
+        
+        x_val = np.array(x_val)   
+        y_val = np.array(y_val)
+        return x_val,y_val
+
+
+
     def shuffle_data(self):
+        # shuffle train data
         merge = list(zip(self.filelist_X,self.filelist_Y))
         random.shuffle(merge)
         self.filelist_X, self.filelist_Y = zip(*merge)
+
+        # shuffle val data
+        merge = list(zip(self.filelist_X_V,self.filelist_Y_V))
+        random.shuffle(merge)
+        self.filelist_X_V, self.filelist_Y_V = zip(*merge)
+
         # print(self.filelist_X[0:2],self.filelist_Y[0:2])
 
     def reset_counter(self):
         global counter
         counter = 0 
-gen = DataLoader(batch_size=1,num_epoch=10)
-gen.load_data(1)
+# gen = DataLoader(batch_size=1,num_epoch=10)
+# gen.load_data(1)
 # for i in gen:
 #     print(i.shape)
 # next(gen)
