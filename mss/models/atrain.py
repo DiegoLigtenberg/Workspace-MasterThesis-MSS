@@ -50,22 +50,23 @@ def load_fsdd(spectrograms_path):
 
   filelist = glob.glob(os.path.join("G:/Thesis/"+spectrograms_path+"/mixture", '*'))
   filelist.sort(key=natural_keys)
+  print(len(filelist))
   for i, file in enumerate(filelist):
-    if i <250: # remove this when full dataset
+    if i >=0 and i < 200: # remove this when full dataset
       # print(file) 
       normalized_spectrogram = np.load(file)
       x_train.append(normalized_spectrogram)
-    else:
-      break
+    # else:
+    #   break
   filelist = glob.glob(os.path.join("G:/Thesis/"+spectrograms_path+"/vocals", '*'))
   filelist.sort(key=natural_keys)
   for i, file in enumerate(filelist):
-    if i <250: # remove this when full dataset
+    if i >=0 and i <200: # remove this when full dataset
       # print(file) 
       normalized_spectrogram = np.load(file)
       y_train.append(normalized_spectrogram)
-    else:
-      break
+    # else:
+    #   break
     # print(file)
   x_train = np.array(x_train)
   y_train = np.array(y_train)      
@@ -183,13 +184,13 @@ def main():
     # # # 0.02 is already decent-ish !!!!! 
     # # print(5/0)
      
-    LEARNING_RATE = 3e-5
+    LEARNING_RATE = 6e-5
       
     # print("new learnn rate:",LEARNING_RATE)
     BATCH_SIZE = 8
     print(LEARNING_RATE)
     for i in range(1):
-      variational_auto_encoder = AutoEncoder.load("model_train_on_batch_vocals3-34-10467.0")   
+      variational_auto_encoder = AutoEncoder.load("model_train_on_batch_vocals3-19-9995.0")   
       variational_auto_encoder.compile(learning_rate=LEARNING_RATE)       
       variational_auto_encoder.train_on_batch(BATCH_SIZE,EPOCHS)    
       variational_auto_encoder.save("model_train_on_batch_vocals3-final")

@@ -20,7 +20,7 @@ from pathlib import Path
 
 import random
 from math import prod
-
+from sklearn.metrics import mean_squared_error
 
 
 
@@ -56,7 +56,7 @@ class AutoEncoder():
         self._num_conv_layers = len(conv_filters)  # dimension of amnt kernels
         self._shape_before_bottleneck = None
         self._model_input = None
-        tf.compat.v1.disable_eager_execution() # works for random seed
+        # tf.compat.v1.disable_eager_execution() # works for random seed
         tf.random.set_seed(1)
         # self.weight_initializer = tf.initializers. TruncatedNormal(mean=0., stddev=1/1024)
         self.weight_initializer = tf.keras.initializers.TruncatedNormal(
@@ -69,7 +69,7 @@ class AutoEncoder():
         self._build()
 
     def save(self, save_folder="."):
-        print("saved model:\t",save_folder)
+        print("saved:",save_folder)
         self._create_folder_if_it_doesnt_exist(save_folder)
         self._save_parameters(save_folder)
         self._save_weights(save_folder)
@@ -150,10 +150,10 @@ class AutoEncoder():
 
         total_train_loss = []
         total_val_loss = []
-        try:
-            print("loaded loss files")
+        try:            
             total_train_loss = list(np.load("visualisation/total_train_loss.npy"))
             total_val_loss = list(np.load("visualisation/total_val_loss.npy"))
+            print("loaded loss files")
         except:
             print("no file of previous loss yet")
 
@@ -161,26 +161,38 @@ class AutoEncoder():
             pb_i = Progbar(self.dataloader.len_train_data, stateful_metrics=metrics_names)
             print("\nepoch {}/{}".format(epoch_nr+1,num_epoch))
             for batch_nr in range(self.dataloader.nr_batches):
-                try:
+                # try:
                     x_train, y_train = self.dataloader.load_data(batch_nr=batch_nr)
                     loss = self.model.train_on_batch(x_train, y_train) 
-                    loss2 = float(str(loss)[4:9])
-                    self.loss.append(loss)     
-                    total_train_loss.append(loss)
+                    loss2 = float(str(loss)[0:9])
+                    self.loss.append(loss)  
+                    
                     meanloss = np.mean(self.loss) 
-                    meanloss = float(str(meanloss)[4:9])
-                    if  batch_nr % 10 == 0 :
+                    meanloss = float(str(meanloss)[0:9])
+                    if  batch_nr % 6 == 0 :
                         x_val, y_val = self.dataloader.load_val(batch_nr=batch_nr)
-                        val_loss = self.model.train_on_batch(x_val, y_val) 
-                        val_loss2 = float(str(val_loss)[4:9])
-                        self.val_loss_m.append(val_loss)
-                        total_val_loss.append(val_loss)                        
+                        # val_loss = self.model.train_on_batch(x_val, y_val) 
+                        # print("val loss 1",val_loss)
+                        y_pred = self.model.predict(x_val)
+                        y_pred = tf.convert_to_tensor(y_pred,dtype=tf.float32)
+                        y_val = tf.cast(y_val, y_pred.dtype)
+                        val_loss = K.mean(tf.math.squared_difference(y_pred, y_val), axis=-1)
+                        # val_loss = val_loss.eval(session=tf.compat.v1.Session()) # if eager execution
+                        val_loss = np.mean(val_loss.numpy())
+                        # print("val loss 2",val_loss)
+                        val_loss2 = float(str(val_loss)[0:9])
+                        self.val_loss_m.append(val_loss)                      
                         meanloss_val = np.mean(self.val_loss_m)
-                        meanloss_val = float(str(meanloss_val)[4:9])
+                        meanloss_val = float(str(meanloss_val)[0:9])
+                    if batch_nr %100 == 0:   
+                        total_train_loss.append(loss)
+                        total_val_loss.append(val_loss)   
+                    
                     values=[('train loss',loss2),("mean loss",meanloss),("val_loss",val_loss2),("mean val_loss",meanloss_val)]  # add comma after last ) to add another metric!        
                     pb_i.add(batch_size, values=values)
-                except:
-                    pass
+
+                # except:
+                    # pass
 
             self.dataloader.shuffle_data()
             self.dataloader.reset_counter() # makes it work after last epoch            

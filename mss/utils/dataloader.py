@@ -40,11 +40,11 @@ class DataLoader():
         self.filelist_Y.sort(key=natural_keys)        
         self.filelist_Y = self.filelist_Y #[0:10]
 
-        self.filelist_X_V = glob.glob(os.path.join("G:/Thesis/valid/mixture", '*'))
+        self.filelist_X_V = glob.glob(os.path.join("G:/Thesis/test/mixture", '*'))
         self.filelist_X_V.sort(key=natural_keys)
         self.filelist_X_V = self.filelist_X_V #[0:10]
      
-        self.filelist_Y_V = glob.glob(os.path.join("G:/Thesis/valid/vocals", '*'))
+        self.filelist_Y_V = glob.glob(os.path.join("G:/Thesis/test/vocals", '*'))
         self.filelist_Y_V.sort(key=natural_keys)        
         self.filelist_Y_V = self.filelist_Y_V #[0:10]
 
@@ -130,7 +130,9 @@ class DataLoader():
 
     def reset_counter(self):
         global counter
+        global counter_val
         counter = 0 
+        counter_val = 0
 # gen = DataLoader(batch_size=1,num_epoch=10)
 # gen.load_data(1)
 # for i in gen:

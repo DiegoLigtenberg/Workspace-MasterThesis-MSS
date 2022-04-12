@@ -19,6 +19,8 @@ def visualize_loss(total_train_loss,total_val_loss):
     plt.title('val loss')
     ax.legend()
     fig.savefig("visualisation/val_loss")
+    
+    plt.close()
 
     np.save("visualisation/total_train_loss",total_train_loss)
     np.save("visualisation/total_val_loss",total_val_loss)

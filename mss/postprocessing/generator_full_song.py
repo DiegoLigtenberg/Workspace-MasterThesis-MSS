@@ -10,16 +10,17 @@ from mss.models.atrain import load_fsdd
 import librosa, librosa.display
 from scipy.io import wavfile
 from scipy.signal import wiener
-
+import tensorflow as tf
+from tensorflow.keras import backend as K
 
 def main():
-    auto_encoder = AutoEncoder.load("model_train_on_batch_vocals3-34-10467.0")  #model_spectr for first_source_sep
+    auto_encoder = AutoEncoder.load("model_train_on_batch_vocals3-19-9995.0")  #model_spectr for first_source_sep
     auto_encoder.summary()
     b_train,y_train = load_fsdd("test") # note the amnt of datapoints load_fssd loads -> check the function
     (np.min(b_train),np.max(b_train))
 
     total_track = []
-    for i in range(110,140):
+    for i in range(60,90):
         sound = i #132 test
 
         # weights = np.full_like(b_train[:1],1/prod(b_train[:1].shape))
@@ -33,6 +34,14 @@ def main():
         # x_train += (np.random.rand(b_train.shape[0],b_train.shape[1],b_train.shape[2],b_train.shape[3])-0.5) * 0.3
         print(x_train.shape)
         x_train = auto_encoder.model.predict(b_train[sound:sound+1])
+
+        tmp = tf.convert_to_tensor(x_train,dtype=tf.float32)
+        tmp = tf.cast(y_train, tmp.dtype)
+        val_loss = K.mean(tf.math.squared_difference(y_train, x_train), axis=-1)
+        # val_loss = val_loss.eval(session=tf.compat.v1.Session()) # if eager execution
+        val_loss = np.mean(val_loss.numpy())
+
+        print("error\t\t",val_loss)
         print("error\t\t",np.mean(np.abs((x_train[:1]-y_train[sound:sound+1])**2)))
         print("min and max val:",np.min(x_train),np.max(x_train))
         print("mean:\t\t",np.mean(x_train))

@@ -15,9 +15,8 @@ import tensorflow as tf
 #     mean=0.0, stddev=0.05, seed=None
 # )
 # print(a)
-
-print(8%(8*4))
-
+for r in range(2):
+    print(r)
 # tf.compat.v1.disable_eager_execution() 
 # import random
 # from tensorflow.keras.losses import MeanSquaredError
