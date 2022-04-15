@@ -34,19 +34,19 @@ class DataLoader():
         extensions = ["mixture","vocals","bass","drums","other","accompaniment"]
         self.filelist_X = glob.glob(os.path.join("G:/Thesis/train/mixture", '*'))
         self.filelist_X.sort(key=natural_keys)
-        self.filelist_X = self.filelist_X #[0:10]
+        self.filelist_X = self.filelist_X[0::]
      
-        self.filelist_Y = glob.glob(os.path.join("G:/Thesis/train/vocals", '*'))
+        self.filelist_Y = glob.glob(os.path.join("G:/Thesis/train/other", '*'))
         self.filelist_Y.sort(key=natural_keys)        
-        self.filelist_Y = self.filelist_Y #[0:10]
+        self.filelist_Y = self.filelist_Y[0::]
 
-        self.filelist_X_V = glob.glob(os.path.join("G:/Thesis/test/mixture", '*'))
+        self.filelist_X_V = glob.glob(os.path.join("G:/Thesis/valid/mixture", '*'))
         self.filelist_X_V.sort(key=natural_keys)
-        self.filelist_X_V = self.filelist_X_V #[0:10]
+        self.filelist_X_V = self.filelist_X_V[0::]
      
-        self.filelist_Y_V = glob.glob(os.path.join("G:/Thesis/test/vocals", '*'))
+        self.filelist_Y_V = glob.glob(os.path.join("G:/Thesis/valid/other", '*'))
         self.filelist_Y_V.sort(key=natural_keys)        
-        self.filelist_Y_V = self.filelist_Y_V #[0:10]
+        self.filelist_Y_V = self.filelist_Y_V[0::]
 
         self.shuffle_data()
 

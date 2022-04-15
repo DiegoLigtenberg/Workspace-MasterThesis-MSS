@@ -5,24 +5,26 @@ from mss.preprocessing.preprocesssing import MinMaxNormalizer
 import numpy as np
 import matplotlib.pyplot as plt
 # from auto_encoder_vanilla import VariationalAutoEncoder
-from mss.models.auto_encoder import AutoEncoder
+# from mss.models.auto_encoder import AutoEncoder
+from mss.models.auto_encoder_other import AutoEncoder
 from mss.models.atrain import load_fsdd
 import librosa, librosa.display
 from scipy.io import wavfile
 from scipy.signal import wiener
-
+import tensorflow as tf
+from tensorflow.keras import backend as K
 
 def main():
-    auto_encoder = AutoEncoder.load("model_train_on_batch_vocals3-19-9995.0")  #model_spectr for first_source_sep
+    auto_encoder = AutoEncoder.load("model_instruments")  #model_spectr for first_source_sep
     auto_encoder.summary()
-    b_train,y_train = load_fsdd("test") # note the amnt of datapoints load_fssd loads -> check the function
+    b_train,y_train = load_fsdd("train") # note the amnt of datapoints load_fssd loads -> check the function
     (np.min(b_train),np.max(b_train))
 
     total_track = []
     reall = False
     for r in range (2):
         total_track = []
-        for i in range(74,75):
+        for i in range(0,1):
             sound = i #132 test
 
             # weights = np.full_like(b_train[:1],1/prod(b_train[:1].shape))
@@ -32,11 +34,20 @@ def main():
             # # print(test)
             # print(5/0)
 
-            x_train=np.array(y_train[sound:sound+1])
+            x_train=np.array(y_train[sound:sound+1]) # y_train when vocal source sep
             # x_train += (np.random.rand(b_train.shape[0],b_train.shape[1],b_train.shape[2],b_train.shape[3])-0.5) * 0.3
             print(x_train.shape)
             if r == 0:
                 x_train = auto_encoder.model.predict(b_train[sound:sound+1])
+
+            x_val, y_val = b_train[sound:sound+1],y_train[sound:sound+1]
+            y_pred = x_train
+            y_pred = tf.convert_to_tensor(y_pred,dtype=tf.float32)
+            y_val = tf.cast(y_val, y_pred.dtype)
+            val_loss = K.mean(tf.math.squared_difference(y_pred, y_val), axis=-1)
+            val_loss = np.mean(val_loss.numpy())
+            
+            print("error\t\t",val_loss)
             print("error\t\t",np.mean(np.abs((x_train[:1]-y_train[sound:sound+1])**2)))
             print("min and max val:",np.min(x_train),np.max(x_train))
             print("mean:\t\t",np.mean(x_train))
@@ -65,13 +76,13 @@ def main():
             # x_train[500:] =0 
             x_train = librosa.db_to_amplitude(x_train) 
             
-            amp_log_spectrogram = librosa.amplitude_to_db(x_train,ref=np.max)
-            fig, ax = plt.subplots()      
-            img = librosa.display.specshow(amp_log_spectrogram, y_axis='linear', sr=44100, hop_length=1050,  x_axis='time', ax=ax)
-            ax.set(title='Log-amplitude spectrogram')
-            ax.label_outer()
-            fig.colorbar(img, ax=ax, format="%+2.f dB")
-            plt.show()
+            # amp_log_spectrogram = librosa.amplitude_to_db(x_train,ref=np.max)
+            # fig, ax = plt.subplots()      
+            # img = librosa.display.specshow(amp_log_spectrogram, y_axis='linear', sr=44100, hop_length=1050,  x_axis='time', ax=ax)
+            # ax.set(title='Log-amplitude spectrogram')
+            # ax.label_outer()
+            # fig.colorbar(img, ax=ax, format="%+2.f dB")
+            # plt.show()
 
             # x_train = librosa.db_to_amplitude(x_train) 
             # x_source = wiener(x_train, (5, 5))
@@ -102,8 +113,8 @@ def main():
         total_track = np.array(total_track)
         total_track = total_track.flatten()
         print((total_track.shape))
-        # if r == 0:
-            # wavfile.write("track_output/test_vocal_prediction.wav",44100,total_track) 
+        if r == 0:
+            wavfile.write("track_output/other.wav",44100,total_track) 
         # else:
             # wavfile.write("track_output/test_mixture.wav",44100,total_track) 
 

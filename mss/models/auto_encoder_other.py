@@ -2,10 +2,11 @@ from encodings.utf_8 import encode
 from enum import auto
 from re import M
 from tensorflow.keras import Model
-from tensorflow.keras.layers import Input, Conv2D, Conv2DTranspose, ReLU, BatchNormalization, Flatten, Dense, Reshape, Activation, Concatenate
+from tensorflow.keras.layers import Input, Conv2D, Conv2DTranspose, ReLU, BatchNormalization, Flatten, Dense, Reshape, Activation, Concatenate, Dropout, Multiply
 from tensorflow.keras import backend as K
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import MeanSquaredError
+from tensorflow.keras import regularizers
 import numpy as np
 import os
 import pickle
@@ -19,7 +20,6 @@ import tensorflow as tf
 from pathlib import Path
 
 import random
-from math import prod
 
 class AutoEncoder():
     """
@@ -53,9 +53,9 @@ class AutoEncoder():
         # tf.compat.v1.disable_eager_execution() # works for random seed
         tf.random.set_seed(1)
         # self.weight_initializer = tf.initializers. TruncatedNormal(mean=0., stddev=1/1024)
-        self.weight_initializer = tf.keras.initializers.TruncatedNormal(
-            mean=0.0, stddev=0.05, seed=None
-        )
+        self.weight_initializer = tf.keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None )
+        self.regularizer =  regularizers.l2(1e-3)
+        self.name = ""
 
         '''private and protected does not exist in python, so this is just convention, but not neccesary!'''
         # _variables or _functions are protected variables/functions and can only be used in subclasses, but can be overwritten by subclasses
@@ -116,7 +116,7 @@ class AutoEncoder():
         import tensorflow
         self.model.summary()
         if save_image:
-            tensorflow.keras.utils.plot_model(self.model, "input_skip.png", show_shapes=True)
+            tensorflow.keras.utils.plot_model(self.model, "model_multiply.png", show_shapes=True)
         #     keras.utils.plot_model(self.decoder, "decoder_model.png", show_shapes=True)
 
     def compile(self, learning_rate=0.0001):
@@ -146,8 +146,8 @@ class AutoEncoder():
         total_train_loss = []
         total_val_loss = []
         try:            
-            total_train_loss = list(np.load("visualisation/total_train_loss.npy"))
-            total_val_loss = list(np.load("visualisation/total_val_loss.npy"))
+            total_train_loss = list(np.load(f"visualisation/{self.name}/total_train_loss.npy"))
+            total_val_loss = list(np.load(f"visualisation/{self.name}/total_val_loss.npy"))
             print("loaded loss files")
         except:
             print("no file of previous loss yet")
@@ -156,14 +156,14 @@ class AutoEncoder():
             pb_i = Progbar(self.dataloader.len_train_data, stateful_metrics=metrics_names)
             print("\nepoch {}/{}".format(epoch_nr+1,num_epoch))
             for batch_nr in range(self.dataloader.nr_batches):
-                # try:
+                try:
                     x_train, y_train = self.dataloader.load_data(batch_nr=batch_nr)
                     loss = self.model.train_on_batch(x_train, y_train) 
-                    loss2 = float(str(loss))# [0:15])
+                    loss2 = float(str(loss)) #[0:9])
                     self.loss.append(loss)  
                     
                     meanloss = np.mean(self.loss) 
-                    meanloss = float(str(meanloss))#[0:15])
+                    meanloss = float(str(meanloss)) #[0:9])
                     if  batch_nr % 6 == 0 :
                         x_val, y_val = self.dataloader.load_val(batch_nr=batch_nr)
                         # val_loss = self.model.train_on_batch(x_val, y_val) 
@@ -175,26 +175,28 @@ class AutoEncoder():
                         # val_loss = val_loss.eval(session=tf.compat.v1.Session()) # if eager execution
                         val_loss = np.mean(val_loss.numpy())
                         # print("val loss 2",val_loss)
-                        val_loss2 = float(str(val_loss))#)[0:15])
+                        val_loss2 = float(str(val_loss)) #[0::])
                         self.val_loss_m.append(val_loss)                      
                         meanloss_val = np.mean(self.val_loss_m)
-                        meanloss_val = float(str(meanloss_val))#[0:15])
+                        meanloss_val = float(str(meanloss_val)) #[0:9])
                     if batch_nr %100 == 0:   
-                        total_train_loss.append(loss)
-                        total_val_loss.append(val_loss)   
+                        # total_train_loss.append(loss)
+                        # total_val_loss.append(val_loss)  
+                        pass 
                     
                     values=[('train loss',loss2),("mean loss",meanloss),("val_loss",val_loss2),("mean val_loss",meanloss_val)]  # add comma after last ) to add another metric!        
                     pb_i.add(batch_size, values=values)
 
-                # except:
-                    # pass
-
+                except:
+                    pass
+            total_train_loss.append(meanloss)
+            total_val_loss.append(meanloss_val)  
             self.dataloader.shuffle_data()
             self.dataloader.reset_counter() # makes it work after last epoch            
-            visualize_loss(total_train_loss,total_val_loss)
+            visualize_loss(total_train_loss[-(len(total_train_loss))-1::],total_val_loss[-(len(total_train_loss))-1::],save=True,model_name=self.name) # adding first is buggy
             
-            if epoch_nr%1 == 0:
-                # self.save(f"model_train_on_batch_vocals3-{epoch_nr}-{round(meanloss,5)}")
+            if epoch_nr%10 == 0:
+                self.save(f"{self.name}-{epoch_nr}-{round(meanloss,5)}")
                 pass
             self.loss = []
             self.val_loss_m = []
@@ -208,7 +210,7 @@ class AutoEncoder():
     def _add_encoder_input(self):
         '''returns Input Object - Keras Input Layer object'''        
         self.encoder_list = []
-        inp = Input(shape=self.input_shape, name="encoder_input")
+        inp = Input(shape=self.input_shape, name="encoder_input")        
         self.encoder_list.append(inp)
         return  inp # returns the input shape of your data
 
@@ -248,7 +250,10 @@ class AutoEncoder():
         model = conv_layer(model)
 
         model = ReLU(name=f"encoder_relu_{layer_number}")(model)
-        model = BatchNormalization(name=f"encoder_bn_{layer_number}")(model)
+        model = BatchNormalization(name=f"encoder_bn_{layer_number}")(model)        
+        if layer_index < 3:
+            model = Dropout(0.3)(model)
+            pass
         # print("shape",model)
         self.encoder_list.append(model)
 
@@ -259,7 +264,7 @@ class AutoEncoder():
         self._shape_before_bottleneck = K.int_shape(model)[
                                         1:]  # [2, 7 ,7 , 32] # 4 dimensional array ( batch size x width x height x channels )
         model = Flatten()(model)
-        model = Dense(self.latent_space_dim, name="encoder_output")(model)  # dimensionality of latent space -> outputshape
+        model = Dense(self.latent_space_dim, name="encoder_output",kernel_regularizer=self.regularizer)(model)  # dimensionality of latent space -> outputshape
         # each output layer in dense layer is value between 0 and 1, if the value is highest -> then we pick that output
         # for duo classification you have 1 layer between 0 and 1 , if the value is > 0.5 then we pick that output
 
@@ -271,7 +276,7 @@ class AutoEncoder():
     def _add_dense_layer(self, decoder_input):
         # product of neurons from previous conv output in dense layer
         num_neurons = np.prod(self._shape_before_bottleneck)
-        dense_layer = Dense(num_neurons, name="decoder_dense")(decoder_input)
+        dense_layer = Dense(num_neurons, name="decoder_dense",kernel_regularizer=self.regularizer)(decoder_input)
         return dense_layer
 
     def _add_reshape_layer(self, dense_layer):
@@ -290,12 +295,13 @@ class AutoEncoder():
     def _add_conv_transpose_layer(self, layer_index, x):
         layer_number = self._num_conv_layers - layer_index
         conv_transpose_layer = Conv2DTranspose(
-            filters=self.conv_filters[layer_index ],
-            kernel_size=(self.conv_kernels[layer_index],self.conv_kernels[layer_index]),
+            filters=self.conv_filters[layer_index-1 ],
+            kernel_size=(self.conv_kernels[layer_index-1],self.conv_kernels[layer_index-1]),
             strides=self.conv_strides[layer_index],
             padding="same",
             name=f"decoder_conv_transpose_layer_{layer_number}",
-            kernel_initializer=self.weight_initializer
+            kernel_initializer=self.weight_initializer,
+            kernel_regularizer=self.regularizer
         )
 
         x = conv_transpose_layer(x)
@@ -318,8 +324,8 @@ class AutoEncoder():
             name=f"decoder_conv_transpose_layer_{self._num_conv_layers}",
             kernel_initializer=self.weight_initializer
         )
-        x = conv_transpose_layer(x)
-        x = Concatenate(axis=3)([self.encoder_list[0], x])  # U-net skip connections
+        x = conv_transpose_layer(x) 
+        # x = Concatenate(axis=3)([self.encoder_list[0], x])  # U-net skip connections
         
         conv_transpose_layer = Conv2DTranspose(
             # [ 24 x 24 x 1] # number of channels = 1 thus filtersd is 1
@@ -330,16 +336,21 @@ class AutoEncoder():
             strides=(1,1),
             padding="same",
             name=f"decoder_conv_transpose_layer_{self._num_conv_layers+1}",
-            kernel_initializer=self.weight_initializer
+            kernel_initializer=self.weight_initializer,
+            kernel_regularizer=self.regularizer
         )
-        x = conv_transpose_layer(x)   
+        # x = conv_transpose_layer(x)
+        # output_layer = Activation("sigmoid", name="softmax_output_layer")(x)
+        # output_layer = Multiply(name="multiply")([x,self.encoder_input])
         output_layer = Activation("tanh", name="tanh_output_layer")(x) # pogchamp rob - sigmoid -> tanh because normalisation
+        # output_layer = Multiply(name="multiply")([output_layer,self.encoder_input])
+      
         return output_layer
 
     def _build_autoencoder(self):
         ####### encoder
-        encoder_input = self._add_encoder_input()
-        conv_layers = self._add_conv_layers(encoder_input)
+        self.encoder_input = self._add_encoder_input()
+        conv_layers = self._add_conv_layers(self.encoder_input)
         bottleneck = self._add_bottle_neck(conv_layers)
 
         # self._model_input = encoder_input
@@ -356,16 +367,16 @@ class AutoEncoder():
         # self.decoder = Model(decoder_input, decoder_output, name="decoder") 
         # print(decoder_output)
 
-        self.model = Model(encoder_input, decoder_output, name="Autoencoder")
+        self.model = Model(self.encoder_input, decoder_output, name="Autoencoder")
 
 def main():
     auto_encoder = AutoEncoder(
-    input_shape=(112, 112, 1),
-    conv_filters=(16, 32, 64, 128),
-    conv_kernels=(3, 3, 3, 3),
+    input_shape=(2048, 128, 1),
+    conv_filters=(16, 32, 64, 128, 256, 512),
+    conv_kernels=(3, 3, 3, 3, 3, 3),
     # stride of 2 is downsampling the data -> halving it!
-    conv_strides=(2, 2, 2, 2),
-    latent_space_dim=2)
+    conv_strides=(2, 2, 2, 2, 2, 2),
+    latent_space_dim=128)
 
     auto_encoder.summary(save_image=True)
 

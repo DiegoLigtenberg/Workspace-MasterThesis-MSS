@@ -279,8 +279,8 @@ class VariationalAutoEncoder():
 if __name__ == "__main__":
 
     variational_auto_encoder = VariationalAutoEncoder(
-        input_shape=(28, 28, 1),
-        conv_filters=(32, 64, 64, 64),
+        input_shape=(56, 56, 1),
+        conv_filters=(16, 32, 64, 128),
         conv_kernels=(3, 3, 3, 3),
         # stride of 2 is downsampling the data -> halving it!
         conv_strides=(1, 2, 2, 1),

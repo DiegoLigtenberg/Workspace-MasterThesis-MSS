@@ -15,8 +15,8 @@ import tensorflow as tf
 #     mean=0.0, stddev=0.05, seed=None
 # )
 # print(a)
-for r in range(2):
-    print(r)
+a = [1,2,3,4,5]
+print(a[-3:])
 # tf.compat.v1.disable_eager_execution() 
 # import random
 # from tensorflow.keras.losses import MeanSquaredError
