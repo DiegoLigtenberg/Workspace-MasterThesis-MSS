@@ -47,6 +47,9 @@ class DataLoader():
         self.filelist_Y_V = glob.glob(os.path.join("G:/Thesis/valid/other", '*'))
         self.filelist_Y_V.sort(key=natural_keys)        
         self.filelist_Y_V = self.filelist_Y_V[0::]
+        
+        self.outliers_train = []
+        self.outliers_val = []
 
         self.shuffle_data()
 
@@ -113,6 +116,22 @@ class DataLoader():
         y_val = np.array(y_val)
         return x_val,y_val
 
+    def showcase_outlier_train(self):        
+        global counter
+        self.outliers_train.append(counter)
+        print(f"train outlier:\t {self.filelist_X[counter]}, counterval:\t{counter}")
+        print(f"train outlier_Y:\t {self.filelist_Y[counter]}, counterval:\t{counter}")
+        print("")
+        print(self.outliers_train)
+
+
+    def showcase_outlier_val(self):    
+        global counter_val    
+        self.outliers_val.append(counter_val)
+        print(f"validation outlier:\t {self.filelist_X_V[counter_val]}, counterval:\t{counter_val}")
+        print(f"validation outlier_Y:\t {self.filelist_Y_V[counter_val]}, counterval:\t{counter_val}")
+        print("")
+        print(self.outliers_val)
 
 
     def shuffle_data(self):

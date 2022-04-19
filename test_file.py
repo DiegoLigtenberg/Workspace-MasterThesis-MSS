@@ -1,22 +1,61 @@
 
-from tensorflow.keras.utils import Progbar
+# from tensorflow.keras.utils import Progbar
 import time 
 import numpy as np
-
+import librosa
 metrics_names = ['acc','pr'] 
 
 num_epochs = 5
 num_training_samples = 100
 batch_size = 10
 
-import tensorflow as tf
-# import keras as keras
-# a = tf.keras.initializers.TruncatedNormal(
-#     mean=0.0, stddev=0.05, seed=None
-# )
-# print(a)
-a = [1,2,3,4,5]
-print(a[-3:])
+import librosa, librosa.display
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.io import wavfile
+    # import torch
+file = "original.wav"
+'''able to convert any .wav file to spectrogram in pytorch and back''' 
+
+import random
+# torch.set_printoptions(precision=10)
+#numpy array     
+# 
+#          
+# 
+# for i in range(10):
+#     print(type(random.choice([-2,2])))
+signal,sr = librosa.load(file,mono=False,sr=44100,duration=3.0)
+print(signal.shape)
+signal_l, signal_r = signal[0], signal[1]
+print(signal_l.shape,signal_r.shape)
+signal = np.vstack((signal_l,signal_r))
+print(signal.shape)
+aa
+
+signal = np.mean(signal,axis=0)  
+augmented_signal = librosa.effects.pitch_shift(signal,44100,2.5)
+# augmented_signal *=0
+print(augmented_signal.shape)
+wavfile.write("original_strecth.wav",44100,augmented_signal) 
+"""
+stretch_factor = 0.5; stretch_factor = np.clip(stretch_factor,0.5,1)
+print(5/stretch_factor)
+aa
+signal,sr = librosa.load(file,mono=False,sr=44100,duration=3.0)
+signal = np.mean(signal,axis=0)
+prev_shape  = signal.shape[0]
+augmented_signal = librosa.effects.time_stretch(signal,0.5)
+new_shape = augmented_signal.shape[0]
+shape_range = new_shape - prev_shape
+rng = random.randint(0,shape_range-1)
+augmented_signal = augmented_signal[rng:rng+prev_shape:]
+# print(augmented_signal.shape)
+wavfile.write("original_strecth.wav",44100,augmented_signal) 
+""" 
+
+
+
 # tf.compat.v1.disable_eager_execution() 
 # import random
 # from tensorflow.keras.losses import MeanSquaredError

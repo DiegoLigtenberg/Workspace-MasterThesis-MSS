@@ -15,16 +15,17 @@ import tensorflow as tf
 from tensorflow.keras import backend as K
 
 def main():
-    auto_encoder = AutoEncoder.load("model_instruments")  #model_spectr for first_source_sep
+    auto_encoder = AutoEncoder.load("model_other_no_BN-34-0.00293")  #model_spectr for first_source_sep
     auto_encoder.summary()
     b_train,y_train = load_fsdd("train") # note the amnt of datapoints load_fssd loads -> check the function
     (np.min(b_train),np.max(b_train))
 
     total_track = []
     reall = False
-    for r in range (2):
+    for r in range (1):
+        r=2
         total_track = []
-        for i in range(0,1):
+        for i in range(5,10):
             sound = i #132 test
 
             # weights = np.full_like(b_train[:1],1/prod(b_train[:1].shape))
@@ -33,8 +34,11 @@ def main():
             # print(test[0][:512])
             # # print(test)
             # print(5/0)
+            if r  <=1:
+                x_train=np.array(y_train[sound:sound+1]) # y_train when vocal source sep
+            else:
+                x_train=np.array(b_train[sound:sound+1]) 
 
-            x_train=np.array(y_train[sound:sound+1]) # y_train when vocal source sep
             # x_train += (np.random.rand(b_train.shape[0],b_train.shape[1],b_train.shape[2],b_train.shape[3])-0.5) * 0.3
             print(x_train.shape)
             if r == 0:
@@ -54,6 +58,7 @@ def main():
 
             mute_sound = False
             if  -0.15 < np.min(x_train) < 0.15 and -0.15 < np.max(x_train) < 0.15 and -0.15 < np.mean(x_train) < 0.15:
+                print("mute sound")
                 mute_sound = True
 
             error = (x_train-y_train[sound:sound+1]) *5# *5 to exagerate
@@ -114,9 +119,11 @@ def main():
         total_track = total_track.flatten()
         print((total_track.shape))
         if r == 0:
-            wavfile.write("track_output/other.wav",44100,total_track) 
-        # else:
-            # wavfile.write("track_output/test_mixture.wav",44100,total_track) 
+            wavfile.write("track_output/other_predictT.wav",44100,total_track) 
+        elif r == 1:            
+            wavfile.write("track_output/other_targetT.wav",44100,total_track) 
+        else:
+            wavfile.write("track_output/other_mixtureT.wav",44100,total_track) 
 
 
     # print(x_train.shape)

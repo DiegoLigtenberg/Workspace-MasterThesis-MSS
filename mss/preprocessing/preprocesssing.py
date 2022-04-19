@@ -21,6 +21,7 @@ import musdb
 import math
 import matplotlib.pyplot as plt
 import pickle
+import random
 from pathlib import Path
 
 #TODO
@@ -34,7 +35,7 @@ HOP_LENGTH = 1024
 SAMPLE_RATE = 44100 #41100
 CHUNK_DURATION = 3.0
 MONO = True
-AUGMENT = False
+AUGMENT = True
 MIN_MAX_VALUES_SAVE_DIR = "F:/Thesis/test"
 
 class Loader():
@@ -59,13 +60,28 @@ class Augmentation():
     '''this class is responsible for performing certain data augmentation techniques'''
     def __init__(self,augment) -> None:
         self.amnt_augments = 1
-        self.augmentations = [self.same,self.polarity_inversion,self.reverse_track]
+        self.augmentations = [self.same,self.polarity_inversion,self.reverse_track,self.time_stretch,self.pitch_scaling]
+        self.augment_rng = None
+        
+        # rolling stretch factor
+        self.samples = int(SAMPLE_RATE * CHUNK_DURATION)
+        self.stretch_factor = 0.5; self.stretch_factor = np.clip(self.stretch_factor,0.5,1)      
+        prev_shape = self.samples
+        new_shape = self.samples/self.stretch_factor
+        self.shape_range = new_shape-prev_shape
         if augment:            
             self.amnt_augments = len(self.augmentations)
 
-    def augment(self,signal,aug):        
-        self.signal = signal        
-        augmented_track = self.augmentations[aug](self.signal)        
+    def augment(self,signal,aug):  
+        self.signal=signal     
+        # tranpose librosa stuff -> make sure data format = [sample x channel]
+        self.signal = self.signal.transpose()
+        if self.signal.shape[0] <=2: self.signal = self.signal.transpose() 
+
+        self.signal_l, self.signal_r = signal[:,0], signal[:,1]
+        augmented_track_l = self.augmentations[aug](self.signal_l)   
+        augmented_track_r = self.augmentations[aug](self.signal_r)    
+        augmented_track = np.vstack((augmented_track_l,augmented_track_r)).transpose()  
         return augmented_track
 
     def same(self,signal):
@@ -78,6 +94,23 @@ class Augmentation():
     def reverse_track(self,signal):
         reversed_track = np.flip(signal)
         return reversed_track
+
+    def time_stretch(self,signal):
+        augmented_signal = librosa.effects.time_stretch(signal,self.stretch_factor)        
+        augmented_signal = augmented_signal[self.rng:self.rng+self.samples:]
+        return augmented_signal
+
+    def pitch_scaling(self,signal):        
+        pitched_signal = librosa.effects.pitch_shift(signal,self.samples,self.semni_tones)
+        return pitched_signal
+
+    def roll_rng(self):
+        # rolls rng number that decides which slice of original track is taken in slowed down version
+        self.rng = random.randint(0,self.shape_range-1)
+
+        # rolls rng number of semni tones to scale up or down pitch scaling 
+        self.semni_tones = random.choice([-2,-1,1,2])
+    
         
 
 
@@ -292,6 +325,7 @@ class PreprocessingPipeline:
                 self.dataset_type = "test"
                 self.saver.min_max_values_save_dir = self.dataset_type
             
+            #   format:    [track-chunk-augmentation]
             for j,track in enumerate(self.loader.load_musdb()[i]): #load_mus_db has train valid test 
                 # augment data here
                 # CANNOT AUGMENT BECAUSE track.audio file will not allow us to iterate over multiple datapoints 
@@ -325,11 +359,15 @@ class PreprocessingPipeline:
                 
 
     def _process_file(self,multi_tracks,j,k):
-        for source in multi_tracks.keys():                     
-            signal = multi_tracks[source]
+        # roll_rng fixes rng rol for time stretching (preserves sound duration of 3 seconds) and semni tones for pitch scaling
+        self.augmentor.roll_rng() 
 
+        # [chunk-augment]
+        for source in multi_tracks.keys():                     
+            # signal = multi_tracks[source] # if it is here, re_use previosu signal augmentation (stacks augmentations) every time ( not what we want )
             for aug in range (0,self.augmentor.amnt_augments):
                 # augment each source chunk
+                signal = multi_tracks[source]
                 signal = self.augmentor.augment(signal,aug)
 
                 # pad each source chunk
