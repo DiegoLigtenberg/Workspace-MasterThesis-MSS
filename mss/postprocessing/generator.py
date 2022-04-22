@@ -15,17 +15,17 @@ import tensorflow as tf
 from tensorflow.keras import backend as K
 
 def main():
-    auto_encoder = AutoEncoder.load("model_other_no_BN-34-0.00293")  #model_spectr for first_source_sep
+    auto_encoder = AutoEncoder.load("model_other_no_BN_augmented_mae-9-0.02107")  #model_spectr for first_source_sep
     auto_encoder.summary()
-    b_train,y_train = load_fsdd("train") # note the amnt of datapoints load_fssd loads -> check the function
+    b_train,y_train = load_fsdd("test") # note the amnt of datapoints load_fssd loads -> check the function
     (np.min(b_train),np.max(b_train))
 
     total_track = []
     reall = False
-    for r in range (1):
-        r=2
+    for r in range (3):
+        # r=2
         total_track = []
-        for i in range(5,10):
+        for i in range(80,100): # test 140-160 should be very good!
             sound = i #132 test
 
             # weights = np.full_like(b_train[:1],1/prod(b_train[:1].shape))
@@ -119,11 +119,11 @@ def main():
         total_track = total_track.flatten()
         print((total_track.shape))
         if r == 0:
-            wavfile.write("track_output/other_predictT.wav",44100,total_track) 
+            wavfile.write("track_output/other_predict.wav",44100,total_track) 
         elif r == 1:            
-            wavfile.write("track_output/other_targetT.wav",44100,total_track) 
+            wavfile.write("track_output/other_target.wav",44100,total_track) 
         else:
-            wavfile.write("track_output/other_mixtureT.wav",44100,total_track) 
+            wavfile.write("track_output/other_mixture.wav",44100,total_track) 
 
 
     # print(x_train.shape)

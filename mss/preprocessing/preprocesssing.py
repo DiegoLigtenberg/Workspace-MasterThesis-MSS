@@ -314,7 +314,7 @@ class PreprocessingPipeline:
     def process(self):
         self.dataset_type = "train"
        
-        for i in range(0,2): # for train, val, test data\
+        for i in range(0,3): # for train, val, test data\
             # self.dataset_type = "test"
             if i == 1: 
                 self.dataset_type = "valid" 

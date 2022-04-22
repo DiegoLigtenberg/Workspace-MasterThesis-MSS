@@ -5,7 +5,7 @@ from tensorflow.keras import Model
 from tensorflow.keras.layers import Input, Conv2D, Conv2DTranspose, ReLU, BatchNormalization, Flatten, Dense, Reshape, Activation, Concatenate, Dropout, Multiply
 from tensorflow.keras import backend as K
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.losses import MeanSquaredError
+from tensorflow.keras.losses import MeanSquaredError, MeanAbsoluteError
 from tensorflow.keras import regularizers
 import numpy as np
 import os
@@ -140,6 +140,7 @@ class AutoEncoder():
     def compile(self, learning_rate=0.0001):
         optimizer = Adam(learning_rate=learning_rate)
         mse_loss = MeanSquaredError()
+        # mse_loss = MeanAbsoluteError()
         self.model.compile(optimizer=optimizer, loss=mse_loss)
 
     def train(self,x_train,y_train,batch_size,num_epoch):
@@ -179,16 +180,16 @@ class AutoEncoder():
                 try:
                     x_train, y_train = self.dataloader.load_data(batch_nr=batch_nr)
                     loss = self.model.train_on_batch(x_train, y_train) 
-                    loss2 = float(str(loss)) #[0:9])
+                    loss2 = loss #float(str(loss)) #[0:9])
                     self.loss.append(loss)  
                     
                     meanloss = np.mean(self.loss) 
-                    meanloss = float(str(meanloss)) #[0:9])
+                    # meanloss = float(str(meanloss)) #[0:9])
                     # if loss > 0.01:
                     #         self.dataloader.showcase_outlier_train()
                     
                     count_val +=1
-                    if  batch_nr % 6 == 0 :
+                    if  batch_nr % 6 == 0 and batch_nr <= 1240*6:
                         x_val, y_val = self.dataloader.load_val(batch_nr=batch_nr)
                         # val_loss = self.model.train_on_batch(x_val, y_val) 
                         # print("val loss 1",val_loss)
@@ -198,23 +199,29 @@ class AutoEncoder():
                         val_loss = K.mean(tf.math.squared_difference(y_pred, y_val), axis=-1)
                         # val_loss = val_loss.eval(session=tf.compat.v1.Session()) # if eager execution
                         val_loss = np.mean(val_loss.numpy())
+                        
+                        # mae = MeanAbsoluteError()
+                        # mae = mae(y_pred,y_val).numpy()
+                        # val_loss = mae
 
                         # print("val loss 2",val_loss)
-                        val_loss2 = float(str(val_loss)) #[0::])
+                        val_loss2 =  val_loss#float(str(val_loss)) #[0::])
                         # print("\n","val_loss",val_loss,"\t",val_loss2)
                         if val_loss < 0.01:                            
                             # self.dataloader.showcase_outlier_val()
                             self.val_loss_m.append(val_loss)                      
                             meanloss_val = np.mean(self.val_loss_m)
-                            meanloss_val = float(str(meanloss_val)) #[0:9])
+                            # meanloss_val = float(str(meanloss_val)) #[0:9])
                         else:
                             count_val2+=1
                             if len(self.val_loss_m) <= 0: # when there is no mean to be calculated (first batch)                            
                                 self.val_loss_m.append(0)   
                             else:   
-                                self.val_loss_m.append(np.mean(self.val_loss_m))          
+                                # don't add mean because it can be skewed! -> only 2% of data instances are > 0.01 thus does not affect much
+                                # self.val_loss_m.append(np.mean(self.val_loss_m)) 
+                                pass         
                             meanloss_val = np.mean(self.val_loss_m)
-                            meanloss_val = float(str(meanloss_val)) #[0:9])]
+                            # meanloss_val = float(str(meanloss_val)) #[0:9])]
                         # print("\n",round(count_val2/(count_val2+count_val) * 100,2))
 
                     if batch_nr %100 == 0:   
@@ -237,7 +244,7 @@ class AutoEncoder():
                 visualize_loss(total_train_loss[-vis_len ::],total_val_loss[-vis_len::],save=True,model_name=self.name) # adding first is buggy
                 pass
         
-            if epoch_nr%10 == 0:
+            if epoch_nr%1 == 0:
                 self.save(f"{self.name}-{epoch_nr}-{round(meanloss,5)}")
                 pass
             self.loss = []
@@ -280,7 +287,7 @@ class AutoEncoder():
             # (int) amount of kernels we use -> output dimensionality of this conv layer -> how many filters we use
             filters=self.conv_filters[layer_index],
             # filter size over input (4 x 4) -> can also be rectengular
-            kernel_size=(self.conv_kernels[layer_index],self.conv_kernels[layer_index]*5), #*5),
+            kernel_size=(self.conv_kernels[layer_index],self.conv_kernels[layer_index]), #*5),
             strides=self.conv_strides[layer_index],
             # keeps dimensionality same -> adds 0's outside the "image" to make w/e stride u pick work
             padding="same",

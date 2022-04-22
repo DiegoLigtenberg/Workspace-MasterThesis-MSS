@@ -25,19 +25,23 @@ import random
 # 
 # for i in range(10):
 #     print(type(random.choice([-2,2])))
-signal,sr = librosa.load(file,mono=False,sr=44100,duration=3.0)
-print(signal.shape)
-signal_l, signal_r = signal[0], signal[1]
-print(signal_l.shape,signal_r.shape)
-signal = np.vstack((signal_l,signal_r))
-print(signal.shape)
-aa
+for i in range (0,3):
+    print(i)
 
-signal = np.mean(signal,axis=0)  
-augmented_signal = librosa.effects.pitch_shift(signal,44100,2.5)
-# augmented_signal *=0
-print(augmented_signal.shape)
-wavfile.write("original_strecth.wav",44100,augmented_signal) 
+# aa
+# signal,sr = librosa.load(file,mono=False,sr=44100,duration=3.0)
+# print(signal.shape)
+# signal_l, signal_r = signal[0], signal[1]
+# print(signal_l.shape,signal_r.shape)
+# signal = np.vstack((signal_l,signal_r))
+# print(signal.shape)
+# aa
+
+# signal = np.mean(signal,axis=0)  
+# augmented_signal = librosa.effects.pitch_shift(signal,44100,2.5)
+# # augmented_signal *=0
+# print(augmented_signal.shape)
+# wavfile.write("original_strecth.wav",44100,augmented_signal) 
 """
 stretch_factor = 0.5; stretch_factor = np.clip(stretch_factor,0.5,1)
 print(5/stretch_factor)
