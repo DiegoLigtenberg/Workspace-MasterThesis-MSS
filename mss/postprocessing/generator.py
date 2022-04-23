@@ -14,18 +14,20 @@ from scipy.signal import wiener
 import tensorflow as tf
 from tensorflow.keras import backend as K
 
+
 def main():
-    auto_encoder = AutoEncoder.load("model_other_no_BN_augmented_mae-9-0.02107")  #model_spectr for first_source_sep
+    auto_encoder = AutoEncoder.load("model_other_no_BN_augmented_lowloss_b1-0-11996.0")  #model_spectr for first_source_sep
     auto_encoder.summary()
     b_train,y_train = load_fsdd("test") # note the amnt of datapoints load_fssd loads -> check the function
     (np.min(b_train),np.max(b_train))
+    
 
     total_track = []
     reall = False
     for r in range (3):
         # r=2
         total_track = []
-        for i in range(80,100): # test 140-160 should be very good!
+        for i in range(40,60): # test 140-160 should be very good!
             sound = i #132 test
 
             # weights = np.full_like(b_train[:1],1/prod(b_train[:1].shape))
@@ -40,7 +42,7 @@ def main():
                 x_train=np.array(b_train[sound:sound+1]) 
 
             # x_train += (np.random.rand(b_train.shape[0],b_train.shape[1],b_train.shape[2],b_train.shape[3])-0.5) * 0.3
-            print(x_train.shape)
+            print(i,x_train.shape)
             if r == 0:
                 x_train = auto_encoder.model.predict(b_train[sound:sound+1])
 

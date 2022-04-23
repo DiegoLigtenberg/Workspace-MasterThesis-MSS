@@ -80,7 +80,7 @@ def main():
     
     # the more complex the model -> the lower the lr should be
     BATCH_SIZE = 8
-    LEARNING_RATE = 5e-5
+    LEARNING_RATE = 1e-4
     EPOCHS = 40
     MODEL_NAME = "model_other_no_BN_augmented" #"model_instruments_other-10-0.00635"
 
@@ -95,8 +95,8 @@ def main():
     '''repeated training'''  
     print("new learnn rate:",LEARNING_RATE)
     for i in range(1):
-      variational_auto_encoder = AutoEncoder.load("model_other_no_BN_augmented-7-0.0013") 
-      variational_auto_encoder.name="model_other_no_BN_augmented"
+      variational_auto_encoder = AutoEncoder.load("model_other_no_BN_augmented_lowloss-1-11700.0") 
+      variational_auto_encoder.name="model_other_no_BN_augmented_lowloss_b1"
       variational_auto_encoder.compile(learning_rate=LEARNING_RATE)       
       variational_auto_encoder.train_on_batch(BATCH_SIZE,EPOCHS)    
       variational_auto_encoder.save("model_other_no_BN_augmented_final")

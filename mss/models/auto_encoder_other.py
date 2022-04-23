@@ -84,6 +84,13 @@ class AutoEncoder():
         variational_auto_encoder.load_weights(weights_path)
         return variational_auto_encoder
 
+    def custom_loss(self,y_true,y_pred):
+        custom_loss = K.mean(tf.square(tf.multiply(tf.square(y_true-y_pred),1000) ))
+        
+        return custom_loss
+
+
+
     def load_weights(self, weights_path):
         self.model.load_weights(weights_path)        
         # for layer in self.model.layers:
@@ -141,7 +148,7 @@ class AutoEncoder():
         optimizer = Adam(learning_rate=learning_rate)
         mse_loss = MeanSquaredError()
         # mse_loss = MeanAbsoluteError()
-        self.model.compile(optimizer=optimizer, loss=mse_loss)
+        self.model.compile(optimizer=optimizer, loss=mse_loss) #self.custom_loss)
 
     def train(self,x_train,y_train,batch_size,num_epoch):
         # since we try to reconstruct the input, the output y_train is basically also x_train
@@ -180,38 +187,42 @@ class AutoEncoder():
                 try:
                     x_train, y_train = self.dataloader.load_data(batch_nr=batch_nr)
                     loss = self.model.train_on_batch(x_train, y_train) 
-                    loss2 = loss #float(str(loss)) #[0:9])
+                    # loss2 = loss #float(str(loss)) #[0:9])
+                    loss2 = float(str(loss)[4:9])
                     self.loss.append(loss)  
                     
                     meanloss = np.mean(self.loss) 
-                    # meanloss = float(str(meanloss)) #[0:9])
+                    meanloss = float(str(meanloss)[4:9])
                     # if loss > 0.01:
                     #         self.dataloader.showcase_outlier_train()
                     
                     count_val +=1
-                    if  batch_nr % 6 == 0 and batch_nr <= 1240*6:
+                    if  batch_nr % 6 == 0 and batch_nr <= 1240 *6: #804:
                         x_val, y_val = self.dataloader.load_val(batch_nr=batch_nr)
                         # val_loss = self.model.train_on_batch(x_val, y_val) 
                         # print("val loss 1",val_loss)
-                        y_pred = self.model.predict(x_val)
+                        y_pred = self.model(x_val)#self.model.predict(x_val)
+                        '''
                         y_pred = tf.convert_to_tensor(y_pred,dtype=tf.float32)
                         y_val = tf.cast(y_val, y_pred.dtype)
                         val_loss = K.mean(tf.math.squared_difference(y_pred, y_val), axis=-1)
                         # val_loss = val_loss.eval(session=tf.compat.v1.Session()) # if eager execution
                         val_loss = np.mean(val_loss.numpy())
-                        
+                        '''
                         # mae = MeanAbsoluteError()
-                        # mae = mae(y_pred,y_val).numpy()
-                        # val_loss = mae
+                        mae = MeanSquaredError()
+                        mae = mae(y_pred,y_val).numpy()
+                        val_loss = mae
 
                         # print("val loss 2",val_loss)
                         val_loss2 =  val_loss#float(str(val_loss)) #[0::])
+                        val_loss2 =  float(str(val_loss)[4:9:])
                         # print("\n","val_loss",val_loss,"\t",val_loss2)
                         if val_loss < 0.01:                            
                             # self.dataloader.showcase_outlier_val()
                             self.val_loss_m.append(val_loss)                      
                             meanloss_val = np.mean(self.val_loss_m)
-                            # meanloss_val = float(str(meanloss_val)) #[0:9])
+                            meanloss_val = float(str(meanloss_val)[4:9])
                         else:
                             count_val2+=1
                             if len(self.val_loss_m) <= 0: # when there is no mean to be calculated (first batch)                            
@@ -221,7 +232,7 @@ class AutoEncoder():
                                 # self.val_loss_m.append(np.mean(self.val_loss_m)) 
                                 pass         
                             meanloss_val = np.mean(self.val_loss_m)
-                            # meanloss_val = float(str(meanloss_val)) #[0:9])]
+                            meanloss_val = float(str(meanloss_val)[4:9])
                         # print("\n",round(count_val2/(count_val2+count_val) * 100,2))
 
                     if batch_nr %100 == 0:   
