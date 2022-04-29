@@ -74,13 +74,24 @@ def visualize_loss(total_train_loss,total_val_loss,save=True,smoothing=30,model_
 if __name__== "__main__":
     RESET_LOSS = False
     LAST_N_EPOCH = 60
-    MODEL_NAME = "model_other_no_BN_augmented_lowloss_b1"
+    MODEL_NAME = "model_otherVOCAL_BN_mae"
 
     total_train_loss = (np.load(f"visualisation/{MODEL_NAME}/total_train_loss.npy"))
     total_val_loss = (np.load(f"visualisation/{MODEL_NAME}/total_val_loss.npy"))
+    
+    # #HERE
+    print(total_train_loss)
+    total_train_loss = total_train_loss[0:]
+    total_val_loss = total_val_loss[0:] # need to remove first 12
+
+    # np.save(f"visualisation/{MODEL_NAME}/total_train_loss",total_train_loss)
+    # np.save(f"visualisation/{MODEL_NAME}/total_val_loss",total_val_loss)
+
+    print(total_train_loss)
+    # asd
 
     LAST_N_EPOCH =  len(total_train_loss)
-    smoothing =   1# int(np.sqrt(LAST_N_EPOCH))    # len(total_train_loss)//10
+    smoothing =    LAST_N_EPOCH//2# int(np.sqrt(LAST_N_EPOCH))    # len(total_train_loss)//10
     # print(len(total_train_loss[:-(LAST_N_EPOCH-1)])//1)
     print(len(total_train_loss))
     print(f"Epochs:\t\t{LAST_N_EPOCH}\nSmoothing:\t{smoothing}")

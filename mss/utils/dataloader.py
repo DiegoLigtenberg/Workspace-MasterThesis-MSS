@@ -53,7 +53,7 @@ class DataLoader():
 
         self.shuffle_data()
 
-        self.len_train_data = len(self.filelist_X)
+        self.len_train_data = len(self.filelist_X)//5
         self.nr_batches = int(self.len_train_data/self.batch_size)  #-50 is because currently end songs are buged.
         print("total files:\t",self.len_train_data)
         print("batch_size:\t",self.batch_size)
@@ -83,7 +83,7 @@ class DataLoader():
                 x_train.append(normalized_spectrogram_X)
                 y_train.append(normalized_spectrogram_Y)
             # if counter <4:
-            counter+=1
+            counter+=5
 
         
         x_train = np.array(x_train)   

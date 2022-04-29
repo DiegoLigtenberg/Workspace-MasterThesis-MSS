@@ -16,9 +16,9 @@ from tensorflow.keras import backend as K
 
 
 def main():
-    auto_encoder = AutoEncoder.load("model_other_no_BN_augmented_lowloss_b1-0-11996.0")  #model_spectr for first_source_sep
+    auto_encoder = AutoEncoder.load("VOCAL-75-0.00193-0.02878")  #model_spectr for first_source_sep
     auto_encoder.summary()
-    b_train,y_train = load_fsdd("test") # note the amnt of datapoints load_fssd loads -> check the function
+    b_train,y_train = load_fsdd("valid") # note the amnt of datapoints load_fssd loads -> check the function
     (np.min(b_train),np.max(b_train))
     
 
@@ -27,7 +27,7 @@ def main():
     for r in range (3):
         # r=2
         total_track = []
-        for i in range(40,60): # test 140-160 should be very good!
+        for i in range(0,30,1): # test 140-160 should be very good! [8, 56, 112, 216, 312, 560]
             sound = i #132 test
 
             # weights = np.full_like(b_train[:1],1/prod(b_train[:1].shape))

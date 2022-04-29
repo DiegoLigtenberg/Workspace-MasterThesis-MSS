@@ -14,7 +14,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.io import wavfile
     # import torch
-file = "original.wav"
+file = r"track_output/01 - Led Zeppelin - Custard Pie-4.wav"
 '''able to convert any .wav file to spectrogram in pytorch and back''' 
 
 import random
@@ -25,11 +25,15 @@ import random
 # 
 # for i in range(10):
 #     print(type(random.choice([-2,2])))
-for i in range (0,3):
-    print(i)
 
 # aa
-# signal,sr = librosa.load(file,mono=False,sr=44100,duration=3.0)
+signal,sr = librosa.load(file,mono=True,sr=44100)
+D = librosa.stft(signal,n_fft=2048,hop_length=1024)
+D_harmonic, D_percussive = librosa.decompose.hpss(D)
+
+source = librosa.griffinlim(D_percussive,hop_length=1024)
+wavfile.write("track_output/librosagod.wav",44100,source) 
+
 # print(signal.shape)
 # signal_l, signal_r = signal[0], signal[1]
 # print(signal_l.shape,signal_r.shape)

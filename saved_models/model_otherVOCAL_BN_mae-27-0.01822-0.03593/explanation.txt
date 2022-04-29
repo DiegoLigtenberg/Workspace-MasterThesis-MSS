@@ -100,11 +100,11 @@ class AutoEncoder():
         #         print("min\t",np.min(l))
         #         print("max\t",np.max(l))
         #         print("mean\t",np.mean(l),"\n")
-            # if layer.name == "decoder_dense":
-            #     for l in layer.get_weights():
-            #         print("min2\t",np.min(l))
-            #         print("max2\t",np.max(l))
-            #         print("mean2\t",np.mean(l),"\n")
+        #     if layer.name == "decoder_dense":
+        #         for l in layer.get_weights():
+        #             print("min2\t",np.min(l))
+        #             print("max2\t",np.max(l))
+        #             print("mean2\t",np.mean(l),"\n")
         # print(5/0)
             # if layer.name == "decoder_conv_transpose_layer_1":
             #     for l in layer.get_weights():
@@ -146,8 +146,8 @@ class AutoEncoder():
 
     def compile(self, learning_rate=0.0001):
         optimizer = Adam(learning_rate=learning_rate)
-        # mse_loss = MeanSquaredError()
-        mse_loss = MeanAbsoluteError()
+        mse_loss = MeanSquaredError()
+        # mse_loss = MeanAbsoluteError()
         self.model.compile(optimizer=optimizer, loss=mse_loss) #self.custom_loss)
 
     def train(self,x_train,y_train,batch_size,num_epoch):
@@ -209,8 +209,8 @@ class AutoEncoder():
                         # val_loss = val_loss.eval(session=tf.compat.v1.Session()) # if eager execution
                         val_loss = np.mean(val_loss.numpy())
                         '''
-                        mae = MeanAbsoluteError()
-                        # mae = MeanSquaredError()
+                        # mae = MeanAbsoluteError()
+                        mae = MeanSquaredError()
                         mae = mae(y_pred,y_val).numpy()
                         val_loss = mae
 
@@ -218,7 +218,7 @@ class AutoEncoder():
                         val_loss2 =  val_loss#float(str(val_loss)) #[0::])
                         val_loss2 =  float(str(val_loss)) #[4:9:])
                         # print("\n","val_loss",val_loss,"\t",val_loss2)
-                        if val_loss < 5.01:                            
+                        if val_loss < 0.01:                            
                             # self.dataloader.showcase_outlier_val()
                             self.val_loss_m.append(val_loss)                      
                             meanloss_val = np.mean(self.val_loss_m)
@@ -255,7 +255,7 @@ class AutoEncoder():
                 visualize_loss(total_train_loss[-vis_len ::],total_val_loss[-vis_len::],save=True,model_name=self.name) # adding first is buggy
                 pass
         
-            if epoch_nr%5 == 0:
+            if epoch_nr%3 == 0:
                 self.save(f"{self.name}-{epoch_nr}-{round(meanloss,5)}-{round(meanloss_val,5)}")
                 pass
             self.loss = []
@@ -304,7 +304,6 @@ class AutoEncoder():
             padding="same",
             name=f"encoder_conv_layer{layer_number}",
             kernel_initializer=self.weight_initializer,
-            use_bias=False
         )
 
         '''adding Conv, Relu, and Batch normalisation to each layer -> x is now the model'''
@@ -327,7 +326,7 @@ class AutoEncoder():
         self._shape_before_bottleneck = K.int_shape(model)[
                                         1:]  # [2, 7 ,7 , 32] # 4 dimensional array ( batch size x width x height x channels )
         model = Flatten()(model)
-        model = Dense(self.latent_space_dim, name="encoder_output",kernel_regularizer=self.regularizer,use_bias=False)(model)#regularizers.l2(1e-7))(model)  # dimensionality of latent space -> outputshape
+        model = Dense(self.latent_space_dim, name="encoder_output",kernel_regularizer=self.regularizer)(model)#regularizers.l2(1e-7))(model)  # dimensionality of latent space -> outputshape
         # each output layer in dense layer is value between 0 and 1, if the value is highest -> then we pick that output
         # for duo classification you have 1 layer between 0 and 1 , if the value is > 0.5 then we pick that output
 
@@ -339,7 +338,7 @@ class AutoEncoder():
     def _add_dense_layer(self, decoder_input):
         # product of neurons from previous conv output in dense layer
         num_neurons = np.prod(self._shape_before_bottleneck)
-        dense_layer = Dense(num_neurons, name="decoder_dense",kernel_regularizer=self.regularizer,use_bias=False)(decoder_input)#regularizers.l2(1e-7))(decoder_input)
+        dense_layer = Dense(num_neurons, name="decoder_dense",kernel_regularizer=self.regularizer)(decoder_input)#regularizers.l2(1e-7))(decoder_input)
         return dense_layer
 
     def _add_reshape_layer(self, dense_layer):
@@ -365,7 +364,6 @@ class AutoEncoder():
             name=f"decoder_conv_transpose_layer_{layer_number}",
             kernel_initializer=self.weight_initializer,
             kernel_regularizer=self.regularizer,
-            use_bias=False
         )
 
         x = conv_transpose_layer(x)
@@ -380,22 +378,19 @@ class AutoEncoder():
     def _add_decoder_output(self, x):
         conv_transpose_layer = Conv2DTranspose(
             # [ 24 x 24 x 1] # number of channels = 1 thus filtersd is 1
-            filters=32,
+            filters=1,
             # first that we skipped on _add_conv_transpose_layer
             kernel_size=self.conv_kernels[0],
             # first that we skipped on _add_conv_transpose_layer
             strides=self.conv_strides[0],
             padding="same",
             name=f"decoder_conv_transpose_layer_{self._num_conv_layers}",
-            kernel_initializer=self.weight_initializer,
-            use_bias=False
+            kernel_initializer=self.weight_initializer
         )
         x = conv_transpose_layer(x) 
-        x = BatchNormalization(name=f"decoder_bn_{self._num_conv_layers}")(x)
-        x = ReLU(name=f"decoder_relu_{self._num_conv_layers}")(x)
         x = Concatenate(axis=3)([self.encoder_list[0], x])  # U-net skip connections
         
-        conv_layer = Conv2D(
+        conv_transpose_layer = Conv2DTranspose(
             # [ 24 x 24 x 1] # number of channels = 1 thus filtersd is 1
             filters=1,
             # first that we skipped on _add_conv_transpose_layer
@@ -403,12 +398,11 @@ class AutoEncoder():
             # first that we skipped on _add_conv_transpose_layer
             strides=(1,1),
             padding="same",
-            name=f"decoder_conv_layer_final",
+            name=f"decoder_conv_transpose_layer_{self._num_conv_layers+1}",
             kernel_initializer=self.weight_initializer,
             kernel_regularizer=self.regularizer
         )
-        
-        x = conv_layer(x)
+        x = conv_transpose_layer(x)
         # output_layer = Activation("sigmoid", name="softmax_output_layer")(x)
         # output_layer = Multiply(name="multiply")([x,self.encoder_input])
         output_layer = Activation("tanh", name="tanh_output_layer")(x) # pogchamp rob - sigmoid -> tanh because normalisation

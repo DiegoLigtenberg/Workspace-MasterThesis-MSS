@@ -34,17 +34,17 @@ def load_fsdd(spectrograms_path):
   y_train = []
   sub = ["mixture","vocals","bass","drums","other","accompaniment"]
 
-  filelist = glob.glob(os.path.join("F:/Thesis/"+spectrograms_path+"/mixture", '*'))
+  filelist = glob.glob(os.path.join("G:/Thesis/"+spectrograms_path+"/mixture", '*'))
   filelist.sort(key=natural_keys)
   print(len(filelist))
   for i, file in enumerate(filelist):
-    if i >=0 and i < 400: # remove this when full dataset
+    if i >=0 and i < 200: # remove this when full dataset
       normalized_spectrogram = np.load(file)
       x_train.append(normalized_spectrogram)
-  filelist = glob.glob(os.path.join("F:/Thesis/"+spectrograms_path+"/other", '*'))
+  filelist = glob.glob(os.path.join("G:/Thesis/"+spectrograms_path+"/mixture", '*'))
   filelist.sort(key=natural_keys)
   for i, file in enumerate(filelist):
-    if i >=0 and i <400: # remove this when full dataset
+    if i >=0 and i <200: # remove this when full dataset
       normalized_spectrogram = np.load(file)
       y_train.append(normalized_spectrogram)
   x_train = np.array(x_train)
@@ -62,12 +62,27 @@ def train(learning_rate,batch_size,epochs,model_name=""):
       conv_strides=(2, 2, 2, 2), # probably also remove large stride size in beginning! UNET ENDS WITH 1x1 CONV BLOCK!
       latent_space_dim=128)
   """
+  ## all models + bn model
   variatonal_auto_encoder = AutoEncoder(
       input_shape=(2048, 128, 1),
       conv_filters=(64, 64, 128, 128, 256, 512), # how many kernels you want per layer
       conv_kernels=(3,   3,   3,   3,   3,   3), # KERNEL SIZE SHOULD BE DIVISIBLE BY STRIDE! but only when upsampling! -> OTHERWISE CITY BLOCK PATTERN -> receptive field
       conv_strides=(2,   2,   2,   2,   2,   2), # probably also remove large stride size in beginning! UNET ENDS WITH 1x1 CONV BLOCK!
       latent_space_dim=128)
+    
+    # variatonal_auto_encoder = AutoEncoder(
+  #     input_shape=(2048, 128, 1),
+  #     conv_filters=(64, 64, 128, 128, 256, 512), # how many kernels you want per layer
+  #     conv_kernels=(3,   3,   3,   3,   3,   3), # KERNEL SIZE SHOULD BE DIVISIBLE BY STRIDE! but only when upsampling! -> OTHERWISE CITY BLOCK PATTERN -> receptive field
+  #     conv_strides=(2,   2,   2,   2,   2,   2), # probably also remove large stride size in beginning! UNET ENDS WITH 1x1 CONV BLOCK!
+  #     latent_space_dim=128)
+  
+  # variatonal_auto_encoder = AutoEncoder(
+  #     input_shape=(2048, 128, 1),
+  #     conv_filters=(64, 64,   128,  128,   256,  256, 256, 512), # how many kernels you want per layer
+  #     conv_kernels=(7,   3,    7,    3,     3,    3,   3,   3), # KERNEL SIZE SHOULD BE DIVISIBLE BY STRIDE! but only when upsampling! -> OTHERWISE CITY BLOCK PATTERN -> receptive field
+  #     conv_strides=(2,   1,    2,    1,     2,    2,   2,   2), # probably also remove large stride size in beginning! UNET ENDS WITH 1x1 CONV BLOCK!
+  #     latent_space_dim=128)
 
   variatonal_auto_encoder.name = model_name
   variatonal_auto_encoder.summary()
@@ -80,26 +95,36 @@ def main():
     
     # the more complex the model -> the lower the lr should be
     BATCH_SIZE = 8
-    LEARNING_RATE = 1e-4
-    EPOCHS = 40
-    MODEL_NAME = "model_other_no_BN_augmented" #"model_instruments_other-10-0.00635"
+    LEARNING_RATE = 3e-4
+    EPOCHS = 500 
+    MODEL_NAME = "Final_Model_Other" #"model_instruments_other-10-0.00635"
 
     ''' first training'''
-    # for i in range(0,1):
-    #   variational_auto_encoder = train(learning_rate=LEARNING_RATE,batch_size=BATCH_SIZE,epochs=EPOCHS,model_name=MODEL_NAME)   #0.003  
-    #   variational_auto_encoder.save(MODEL_NAME)
+    for i in range(0,1):
+      # variational_auto_encoder = AutoEncoder.load("Final_Model_Other") 
+      variational_auto_encoder = train(learning_rate=LEARNING_RATE,batch_size=BATCH_SIZE,epochs=EPOCHS,model_name=MODEL_NAME)   #0.003  
+      variational_auto_encoder.save(MODEL_NAME)
     # 0.001 is already decent-ish !!!!! 
     # print(5/0)
      
 
     '''repeated training'''  
-    print("new learnn rate:",LEARNING_RATE)
-    for i in range(1):
-      variational_auto_encoder = AutoEncoder.load("model_other_no_BN_augmented_lowloss-1-11700.0") 
-      variational_auto_encoder.name="model_other_no_BN_augmented_lowloss_b1"
-      variational_auto_encoder.compile(learning_rate=LEARNING_RATE)       
-      variational_auto_encoder.train_on_batch(BATCH_SIZE,EPOCHS)    
-      variational_auto_encoder.save("model_other_no_BN_augmented_final")
+    # print("new learnn rate:",LEARNING_RATE)
+    # for i in range(1):
+    #   variational_auto_encoder = AutoEncoder.load("model_otherVOCAL_BN_mae-27-0.01822-0.03593") 
+    #   variational_auto_encoder.name="model_otherVOCAL_BN_mae"
+    #   variational_auto_encoder.compile(learning_rate=LEARNING_RATE)       
+    #   variational_auto_encoder.train_on_batch(BATCH_SIZE,EPOCHS)    
+    #   variational_auto_encoder.save("model_otherVOCAL_BN_mae")
+
+    '''repeated training'''  
+    # print("new learnn rate:",LEARNING_RATE)
+    # for i in range(1):
+    #   variational_auto_encoder = AutoEncoder.load("Final_Model") 
+    #   variational_auto_encoder.name="Final_Model"
+    #   variational_auto_encoder.compile(learning_rate=LEARNING_RATE)       
+    #   variational_auto_encoder.train_on_batch(BATCH_SIZE,EPOCHS)    
+    #   variational_auto_encoder.save("Final_Model")
 
 if __name__=="__main__":
     main()
