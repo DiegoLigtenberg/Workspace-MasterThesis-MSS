@@ -74,20 +74,20 @@ def visualize_loss(total_train_loss,total_val_loss,save=True,smoothing=30,model_
 if __name__== "__main__":
     RESET_LOSS = False
     LAST_N_EPOCH = 60
-    MODEL_NAME = "model_otherVOCAL_BN_mae"
+    MODEL_NAME = "Final_Model_Other"
 
     total_train_loss = (np.load(f"visualisation/{MODEL_NAME}/total_train_loss.npy"))
     total_val_loss = (np.load(f"visualisation/{MODEL_NAME}/total_val_loss.npy"))
     
     # #HERE
-    print(total_train_loss)
-    total_train_loss = total_train_loss[0:]
-    total_val_loss = total_val_loss[0:] # need to remove first 12
+    print(total_val_loss)
+    total_train_loss = total_train_loss[200:]
+    total_val_loss = total_val_loss[200:] # need to remove first 12
 
     # np.save(f"visualisation/{MODEL_NAME}/total_train_loss",total_train_loss)
     # np.save(f"visualisation/{MODEL_NAME}/total_val_loss",total_val_loss)
 
-    print(total_train_loss)
+    print(total_val_loss)
     # asd
 
     LAST_N_EPOCH =  len(total_train_loss)

@@ -38,13 +38,13 @@ def load_fsdd(spectrograms_path):
   filelist.sort(key=natural_keys)
   print(len(filelist))
   for i, file in enumerate(filelist):
-    if i >=0 and i < 200: # remove this when full dataset
+    if i >=0 and i < 400: # remove this when full dataset
       normalized_spectrogram = np.load(file)
       x_train.append(normalized_spectrogram)
-  filelist = glob.glob(os.path.join("G:/Thesis/"+spectrograms_path+"/mixture", '*'))
+  filelist = glob.glob(os.path.join("G:/Thesis/"+spectrograms_path+"/other", '*'))
   filelist.sort(key=natural_keys)
   for i, file in enumerate(filelist):
-    if i >=0 and i <200: # remove this when full dataset
+    if i >=0 and i <400: # remove this when full dataset
       normalized_spectrogram = np.load(file)
       y_train.append(normalized_spectrogram)
   x_train = np.array(x_train)
@@ -97,11 +97,11 @@ def main():
     BATCH_SIZE = 8
     LEARNING_RATE = 3e-4
     EPOCHS = 500 
-    MODEL_NAME = "Final_Model_Other" #"model_instruments_other-10-0.00635"
+    MODEL_NAME = "Final_Model_Other_UNET" #"model_instruments_other-10-0.00635"
 
     ''' first training'''
     for i in range(0,1):
-      # variational_auto_encoder = AutoEncoder.load("Final_Model_Other") 
+      # variational_auto_encoder = AutoEncoder.load("Final_Model_Other_UNET") 
       variational_auto_encoder = train(learning_rate=LEARNING_RATE,batch_size=BATCH_SIZE,epochs=EPOCHS,model_name=MODEL_NAME)   #0.003  
       variational_auto_encoder.save(MODEL_NAME)
     # 0.001 is already decent-ish !!!!! 
@@ -120,11 +120,11 @@ def main():
     '''repeated training'''  
     # print("new learnn rate:",LEARNING_RATE)
     # for i in range(1):
-    #   variational_auto_encoder = AutoEncoder.load("Final_Model") 
-    #   variational_auto_encoder.name="Final_Model"
+    #   variational_auto_encoder = AutoEncoder.load("Final_Model_Other_UNET") 
+    #   variational_auto_encoder.name="Final_Model_Other_UNET"
     #   variational_auto_encoder.compile(learning_rate=LEARNING_RATE)       
     #   variational_auto_encoder.train_on_batch(BATCH_SIZE,EPOCHS)    
-    #   variational_auto_encoder.save("Final_Model")
+    #   variational_auto_encoder.save("Final_Model_Other_UNET")
 
 if __name__=="__main__":
     main()
