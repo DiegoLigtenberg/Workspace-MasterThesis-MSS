@@ -14,10 +14,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.io import wavfile
     # import torch
-file = r"track_output/01 - Led Zeppelin - Custard Pie-4.wav"
+file = r"track_output/"
 '''able to convert any .wav file to spectrogram in pytorch and back''' 
-
+from dora.log import LogProgress
 import random
+import logging
+logger = logging.getLogger(__name__)
+print(logger)
 # torch.set_printoptions(precision=10)
 #numpy array     
 # 
@@ -27,12 +30,69 @@ import random
 #     print(type(random.choice([-2,2])))
 
 # aa
-signal,sr = librosa.load(file,mono=True,sr=44100)
-D = librosa.stft(signal,n_fft=2048,hop_length=1024)
-D_harmonic, D_percussive = librosa.decompose.hpss(D)
+# a = np.array((  [1,2,3],
+#                 [1,2,3],
+#                 [1,2,3],
+#                 [1,2,5]))
 
-source = librosa.griffinlim(D_percussive,hop_length=1024)
-wavfile.write("track_output/librosagod.wav",44100,source) 
+# b = np.array((  [2,2,3],
+#                 [1,2,3],
+#                 [1,2,5],
+#                 [1,2,6]))
+# print(a.shape)
+import matplotlib.pyplot as plt
+x_train = np.load("mss_evaluate_data/database_test/database_mse.npy")
+y_train = np.load("mss_evaluate_data/database_test/database_sdr.npy")
+
+fig = plt.figure()
+ax = plt.subplot(111)
+ax.plot(x_train, label='mse loss')
+ax.plot(np.ones_like(x_train)* np.mean(x_train), label = 'avg mse')
+ax.legend()
+fig.savefig(f"visualisation/test_evaluation/mse_loss")
+
+
+fig = plt.figure()
+ax = plt.subplot(111)
+ax.plot(y_train, label='sdr loss')
+ax.plot(np.ones_like(y_train)*np.mean(y_train), label = 'avg sdr')
+ax.legend()
+fig.savefig(f"visualisation/test_evaluation/sdr_loss")
+
+# a = [1,2,3,4,5,6,7,8]
+# b = len(a)
+# it = -1
+# def mygen():
+#     global it
+#     it+=1
+#     while it < b:
+#         yield a[it]
+    
+
+# for i in range(b):
+#     print(next(mygen()))
+
+#  for i,chunk in enumerate(range(180,181,1)):
+#      print(i)
+
+# num = np.sum(np.square(a), axis=(0, 1))
+            # print(reference,estimate)
+# den = np.sum(np.square(a - b), axis=(0, 1))
+# print(np.sum(np.square(a-b),axis=(0,1))) #0 = column #  1 = row 
+'''
+indexes = range(0, 14, 1)
+indexes = LogProgress(logger, indexes, updates=1,
+                        name='Eval')
+for index in indexes:
+    print(index)
+    track = test_set.tracks[index]
+'''
+# signal,sr = librosa.load(file,mono=False,sr=44100)
+# D = librosa.stft(signal)
+# D_harmonic, D_percussive = librosa.decompose.hpss(D)
+
+# source = librosa.griffinlim(D_harmonic,hop_length=1024)
+# wavfile.write("track_output/librosagod.wav",44100,source) 
 
 # print(signal.shape)
 # signal_l, signal_r = signal[0], signal[1]

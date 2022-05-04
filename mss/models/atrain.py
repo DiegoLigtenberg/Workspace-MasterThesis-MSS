@@ -96,14 +96,14 @@ def main():
     # the more complex the model -> the lower the lr should be
     BATCH_SIZE = 8
     LEARNING_RATE = 3e-4
-    EPOCHS = 500 
-    MODEL_NAME = "Final_Model_Other_UNET" #"model_instruments_other-10-0.00635"
+    EPOCHS = 30
+    MODEL_NAME = "Final_Model_Other-10-0.01871-0.03438 VALID" #"model_instruments_other-10-0.00635"
 
     ''' first training'''
-    for i in range(0,1):
-      # variational_auto_encoder = AutoEncoder.load("Final_Model_Other_UNET") 
-      variational_auto_encoder = train(learning_rate=LEARNING_RATE,batch_size=BATCH_SIZE,epochs=EPOCHS,model_name=MODEL_NAME)   #0.003  
-      variational_auto_encoder.save(MODEL_NAME)
+    # for i in range(0,1):
+      # variational_auto_encoder = AutoEncoder.load("Final_Model_Other-10-0.01871-0.03438 VALID") 
+      # variational_auto_encoder = train(learning_rate=LEARNING_RATE,batch_size=BATCH_SIZE,epochs=EPOCHS,model_name=MODEL_NAME)   #0.003  
+      # variational_auto_encoder.save(MODEL_NAME)
     # 0.001 is already decent-ish !!!!! 
     # print(5/0)
      
@@ -119,12 +119,12 @@ def main():
 
     '''repeated training'''  
     # print("new learnn rate:",LEARNING_RATE)
-    # for i in range(1):
-    #   variational_auto_encoder = AutoEncoder.load("Final_Model_Other_UNET") 
-    #   variational_auto_encoder.name="Final_Model_Other_UNET"
-    #   variational_auto_encoder.compile(learning_rate=LEARNING_RATE)       
-    #   variational_auto_encoder.train_on_batch(BATCH_SIZE,EPOCHS)    
-    #   variational_auto_encoder.save("Final_Model_Other_UNET")
+    for i in range(1):
+      variational_auto_encoder = AutoEncoder.load("Final_Model_Other_b1-1-0.01968-0.03594") 
+      variational_auto_encoder.name="Final_Model_Other_b1"
+      variational_auto_encoder.compile(learning_rate=LEARNING_RATE)       
+      variational_auto_encoder.train_on_batch(BATCH_SIZE,EPOCHS)    
+      variational_auto_encoder.save("Final_Model_Other_b1")
 
 if __name__=="__main__":
     main()

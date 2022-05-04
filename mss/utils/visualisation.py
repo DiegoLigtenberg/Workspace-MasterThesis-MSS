@@ -81,20 +81,22 @@ if __name__== "__main__":
     
     # #HERE
     print(total_val_loss)
-    total_train_loss = total_train_loss[200:]
-    total_val_loss = total_val_loss[200:] # need to remove first 12
+    total_train_loss = total_train_loss[0:500]
+    total_val_loss = total_val_loss[0:500] # need to remove first 12
 
     # np.save(f"visualisation/{MODEL_NAME}/total_train_loss",total_train_loss)
     # np.save(f"visualisation/{MODEL_NAME}/total_val_loss",total_val_loss)
 
     print(total_val_loss)
-    # asd
+  
 
     LAST_N_EPOCH =  len(total_train_loss)
-    smoothing =    LAST_N_EPOCH//2# int(np.sqrt(LAST_N_EPOCH))    # len(total_train_loss)//10
+    smoothing =    30 #LAST_N_EPOCH//2# int(np.sqrt(LAST_N_EPOCH))    # len(total_train_loss)//10
+  
     # print(len(total_train_loss[:-(LAST_N_EPOCH-1)])//1)
     print(len(total_train_loss))
     print(f"Epochs:\t\t{LAST_N_EPOCH}\nSmoothing:\t{smoothing}")
+    # asd
     visualize_loss(
                     total_train_loss[-LAST_N_EPOCH::],
                     total_val_loss[-LAST_N_EPOCH::],

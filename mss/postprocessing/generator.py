@@ -16,18 +16,20 @@ from tensorflow.keras import backend as K
 
 
 def main():
-    auto_encoder = AutoEncoder.load("Final_Model_Other")  #model_spectr for first_source_sep
+    auto_encoder = AutoEncoder.load("Final_Model_Other-10-0.01871-0.03438 VALID")  #model_spectr for first_source_sep
     auto_encoder.summary()
-    b_train,y_train = load_fsdd("train") # note the amnt of datapoints load_fssd loads -> check the function
+    b_train,y_train = load_fsdd("test") # note the amnt of datapoints load_fssd loads -> check the function
     (np.min(b_train),np.max(b_train))
     
 
     total_track = []
     reall = False
+    estimate = None
+    reference = None
     for r in range (3):
         # r=2
         total_track = []
-        for i in range(0,1,1): # test 140-160 should be very good! [8, 56, 112, 216, 312, 560]
+        for i in range(180,181,1): # test 140-160 should be very good! [8, 56, 112, 216, 312, 560]
             sound = i #132 test
 
             # weights = np.full_like(b_train[:1],1/prod(b_train[:1].shape))
@@ -57,6 +59,7 @@ def main():
             print("error\t\t",np.mean(np.abs((x_train[:1]-y_train[sound:sound+1])**2)))
             print("min and max val:",np.min(x_train),np.max(x_train))
             print("mean:\t\t",np.mean(x_train))
+            
 
             mute_sound = False
             if  -0.15 < np.min(x_train) < 0.15 and -0.15 < np.max(x_train) < 0.15 and -0.15 < np.mean(x_train) < 0.15:
@@ -82,15 +85,28 @@ def main():
             x_train = x_train[:-1]   
             # x_train[500:] =0 
             x_train = librosa.db_to_amplitude(x_train) 
+            print(x_train.shape)
             
-            amp_log_spectrogram = librosa.amplitude_to_db(x_train,ref=np.max)
-            fig, ax = plt.subplots()      
-            img = librosa.display.specshow(amp_log_spectrogram, y_axis='linear', sr=44100, hop_length=1050,  x_axis='time', ax=ax)
-            ax.set(title='Log-amplitude spectrogram')
-            ax.label_outer()
-            fig.colorbar(img, ax=ax, format="%+2.f dB")
-            plt.show()
+            # amp_log_spectrogram = librosa.amplitude_to_db(x_train,ref=np.max)
+       
+            # fig, ax = plt.subplots()      
+            # img = librosa.display.specshow(amp_log_spectrogram, y_axis='linear', sr=44100, hop_length=1050,  x_axis='time', ax=ax)
+            # ax.set(title='Log-amplitude spectrogram')
+            # ax.label_outer()
+            # fig.colorbar(img, ax=ax, format="%+2.f dB")
+            # plt.show()
 
+          
+            if r == 0:
+                estimate = x_train
+            if r == 1:
+                reference = x_train
+
+                # reference2 = (reference - np.mean(reference)) / np.std(reference)
+                # estimate = (estimate - np.mean(reference)) / np.std(reference)
+                # reference = reference2
+                
+         
             # x_train = librosa.db_to_amplitude(x_train) 
             # x_source = wiener(x_train, (5, 5))
             # print(x_source.shape)
@@ -119,10 +135,41 @@ def main():
             # print(x_source.shape)
         total_track = np.array(total_track)
         total_track = total_track.flatten()
+       
         print((total_track.shape))
+
+   
         if r == 0:
+            total_track = wiener(total_track,mysize=3)
             wavfile.write("track_output/other_predict.wav",44100,total_track) 
-        elif r == 1:            
+            # estimate = total_track
+        elif r == 1:  
+            # reference  = total_track          
+            delta = 1e-7  # avoid numerical errors
+            print(reference.shape)
+            num = np.sum(np.square(reference), axis=None)
+            # print(reference,estimate)
+            den = np.sum(np.square(reference - estimate), axis=None)
+
+            print(np.min(reference),np.max(reference),np.mean(reference))
+            print(np.min(estimate),np.max(estimate),np.mean(estimate))
+            print(reference.shape)
+            print(reference[0])
+            print(estimate[0])
+       
+    
+            num += delta
+            den += delta
+            print(num)
+            print(den,"\n")
+            print("sdr:\t", 10 * np.log10(num  / den)) # SDR is always 0.5 away from mus_eval SDR  thus it is correct to use on spectrogram too just mention how! 
+            # import museval
+            # estimate = np.atleast_2d(estimate)
+            # reference = np.atleast_2d(reference)
+            # print(estimate.shape)
+            # print(reference.shape)
+            # print(museval.evaluate(estimates=estimate,references=reference))
+        
             wavfile.write("track_output/other_target.wav",44100,total_track) 
         else:
             wavfile.write("track_output/other_mixture.wav",44100,total_track) 

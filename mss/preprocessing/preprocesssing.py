@@ -440,5 +440,5 @@ if __name__ == "__main__":
     preprocessing.normalizer = min_max_normalizer
     preprocessing.saver = saver
 
-    preprocessing.process()
+    # preprocessing.process()
     

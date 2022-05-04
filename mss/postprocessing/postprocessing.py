@@ -22,7 +22,7 @@ mus_train = musdb.DB(root="databases/database",subsets="train", split='train',do
 def estimate_and_evaluate(track):
     # generate your estimates
     estimates = {
-        'vocals': track.audio,
+        'other': track.audio,
         'accompaniment': track.audio
     }
 

@@ -25,20 +25,16 @@ import pickle
 import random
 from pathlib import Path
 from mss.utils.dataloader import natural_keys, atof
+from mss.settings.settings import N_FFT,HOP_LENGTH,SAMPLE_RATE,CHUNK_DURATION,MONO
 
 #TODO
 # MAKE MAX CHUNKS + 1  because currently it ignroes last part of song
 
 DATASET_DIR = "databases/database"
 SPECTROGRAM_SAVE_DIR = "train_spectrogram"
-
-N_FFT = 4096
-HOP_LENGTH = 1024
-SAMPLE_RATE = 44100 #41100
-CHUNK_DURATION = 3.0
-MONO = True
-AUGMENT = True,
 MIN_MAX_VALUES_SAVE_DIR = "F:/Thesis/test"
+
+AUGMENT = True
 
 class Loader():
     '''Load is responsible for loading an audio file.'''
@@ -171,6 +167,7 @@ class LogSpectroGramExtractor():
             self.signal =  np.mean(self.signal, axis=1)
             stft = librosa.stft(self.signal,n_fft=self.n_fft,hop_length=self.hop_length)[:-1] #dimensions = (1+ (frame_size/2)  , num_frames)  1024 -> 513 -> 512 ([:-1])
             spectrogram = np.abs(stft)
+            print(spectrogram.shape)
             if np.mean(spectrogram) == 0:
                 # add extra column for 128 power of 2
                 spectrogram = np.append(spectrogram,np.array(2048*[[0,]]),axis=1)
