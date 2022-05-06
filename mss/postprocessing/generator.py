@@ -16,9 +16,9 @@ from tensorflow.keras import backend as K
 
 
 def main():
-    auto_encoder = AutoEncoder.load("Final_Model_Other-10-0.01871-0.03438 VALID")  #model_spectr for first_source_sep
+    auto_encoder = AutoEncoder.load("Final_Model_Other_extra_songs-15-0.01687-0.03398 VALID")  #model_spectr for first_source_sep
     auto_encoder.summary()
-    b_train,y_train = load_fsdd("test") # note the amnt of datapoints load_fssd loads -> check the function
+    b_train,y_train = load_fsdd("inference") # note the amnt of datapoints load_fssd loads -> check the function
     (np.min(b_train),np.max(b_train))
     
 
@@ -29,7 +29,7 @@ def main():
     for r in range (3):
         # r=2
         total_track = []
-        for i in range(180,181,1): # test 140-160 should be very good! [8, 56, 112, 216, 312, 560]
+        for i in range(0,90,1): # test 140-160 should be very good! [8, 56, 112, 216, 312, 560]
             sound = i #132 test
 
             # weights = np.full_like(b_train[:1],1/prod(b_train[:1].shape))
@@ -48,12 +48,23 @@ def main():
             if r == 0:
                 x_train = auto_encoder.model.predict(b_train[sound:sound+1])
 
+            if r == 0:
+                
+                # sub(x_train)
+                # x_train[(x_train<0.07) & (x_train >= 0.0)]  -=.101
+                x_train[(x_train<0.1) & (x_train >= 0.0)]  *=.2
+                x_train[(x_train<0.0) & (x_train > -0.2)]  /=.2 # the lower the division number (closer to 0) -> the more sound (drums) are removed, but also other sound
+                x_train[(x_train<=-0.2)] = -.33
+                # x_train[(x_train<=0.1)] = -.33
+                pass
+
             x_val, y_val = b_train[sound:sound+1],y_train[sound:sound+1]
             y_pred = x_train
             y_pred = tf.convert_to_tensor(y_pred,dtype=tf.float32)
             y_val = tf.cast(y_val, y_pred.dtype)
             val_loss = K.mean(tf.math.squared_difference(y_pred, y_val), axis=-1)
             val_loss = np.mean(val_loss.numpy())
+            
             
             print("error\t\t",val_loss)
             print("error\t\t",np.mean(np.abs((x_train[:1]-y_train[sound:sound+1])**2)))

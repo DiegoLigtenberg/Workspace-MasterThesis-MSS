@@ -40,10 +40,20 @@ print(logger)
 #                 [1,2,5],
 #                 [1,2,6]))
 # print(a.shape)
-import matplotlib.pyplot as plt
-x_train = np.load("mss_evaluate_data/database_test/database_mse.npy")
-y_train = np.load("mss_evaluate_data/database_test/database_sdr.npy")
 
+# a = [1,2,3]
+# # print(a == a[4])
+# a = "123"
+# b = f"{a}{None}"
+# print(b)
+# asd
+import matplotlib.pyplot as plt
+x_train = np.load("mss_evaluate_data/database_test/database_mse_original.npy")
+y_train = np.load("mss_evaluate_data/database_test/database_sdr_original.npy")
+
+print(x_train)
+print(y_train,np.mean(y_train))
+asd
 fig = plt.figure()
 ax = plt.subplot(111)
 ax.plot(x_train, label='mse loss')

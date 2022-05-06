@@ -167,7 +167,6 @@ class LogSpectroGramExtractor():
             self.signal =  np.mean(self.signal, axis=1)
             stft = librosa.stft(self.signal,n_fft=self.n_fft,hop_length=self.hop_length)[:-1] #dimensions = (1+ (frame_size/2)  , num_frames)  1024 -> 513 -> 512 ([:-1])
             spectrogram = np.abs(stft)
-            print(spectrogram.shape)
             if np.mean(spectrogram) == 0:
                 # add extra column for 128 power of 2
                 spectrogram = np.append(spectrogram,np.array(2048*[[0,]]),axis=1)
@@ -261,7 +260,7 @@ class Saver:
         save_dir = Path("G:/Thesis")/Path(save_dir)
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
-        save_file = f"{dataset_type}/{source}/{i}-{j}-{aug}"   
+        save_file = f"{dataset_type}/{source}/inferene{i}-{j}-{aug}"   
         save_file = Path("G:/Thesis")/Path(save_file)   
         np.save(str(save_file)+".npy",feature)
         return save_file

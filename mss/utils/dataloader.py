@@ -34,11 +34,11 @@ class DataLoader():
         extensions = ["mixture","vocals","bass","drums","other","accompaniment"]
         self.filelist_X = glob.glob(os.path.join("G:/Thesis/train/mixture", '*'))
         self.filelist_X.sort(key=natural_keys)
-        self.filelist_X = self.filelist_X[::]# [0:400:5]
+        self.filelist_X = self.filelist_X[0::5]# [0:400:5]
      
         self.filelist_Y = glob.glob(os.path.join("G:/Thesis/train/other", '*'))
         self.filelist_Y.sort(key=natural_keys)        
-        self.filelist_Y = self.filelist_Y[::]#[0:400:5]
+        self.filelist_Y = self.filelist_Y[0::5]#[0:400:5]
 
         self.filelist_X_V = glob.glob(os.path.join("G:/Thesis/valid/mixture", '*'))
         self.filelist_X_V.sort(key=natural_keys)
@@ -51,9 +51,10 @@ class DataLoader():
         self.outliers_train = []
         self.outliers_val = []
 
+        
         self.shuffle_data()
-
-        self.len_train_data = len(self.filelist_X)//5
+        
+        self.len_train_data = len(self.filelist_X)//1
         self.nr_batches = int(self.len_train_data/self.batch_size)  #-50 is because currently end songs are buged.
         print("total files:\t",self.len_train_data)
         print("batch_size:\t",self.batch_size)
@@ -83,7 +84,7 @@ class DataLoader():
                 x_train.append(normalized_spectrogram_X)
                 y_train.append(normalized_spectrogram_Y)
             # if counter <4:
-            counter+=5
+            counter+=1
 
         
         x_train = np.array(x_train)   

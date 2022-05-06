@@ -41,7 +41,7 @@ def load_fsdd(spectrograms_path):
     if i >=0 and i < 400: # remove this when full dataset
       normalized_spectrogram = np.load(file)
       x_train.append(normalized_spectrogram)
-  filelist = glob.glob(os.path.join("G:/Thesis/"+spectrograms_path+"/other", '*'))
+  filelist = glob.glob(os.path.join("G:/Thesis/"+spectrograms_path+"/mixture", '*'))
   filelist.sort(key=natural_keys)
   for i, file in enumerate(filelist):
     if i >=0 and i <400: # remove this when full dataset
@@ -66,7 +66,7 @@ def train(learning_rate,batch_size,epochs,model_name=""):
   variatonal_auto_encoder = AutoEncoder(
       input_shape=(2048, 128, 1),
       conv_filters=(64, 64, 128, 128, 256, 512), # how many kernels you want per layer
-      conv_kernels=(3,   3,   3,   3,   3,   3), # KERNEL SIZE SHOULD BE DIVISIBLE BY STRIDE! but only when upsampling! -> OTHERWISE CITY BLOCK PATTERN -> receptive field
+      conv_kernels=(5,   5,   3,   3,   3,   3), # KERNEL SIZE SHOULD BE DIVISIBLE BY STRIDE! but only when upsampling! -> OTHERWISE CITY BLOCK PATTERN -> receptive field
       conv_strides=(2,   2,   2,   2,   2,   2), # probably also remove large stride size in beginning! UNET ENDS WITH 1x1 CONV BLOCK!
       latent_space_dim=128)
     
@@ -96,8 +96,8 @@ def main():
     # the more complex the model -> the lower the lr should be
     BATCH_SIZE = 8
     LEARNING_RATE = 3e-4
-    EPOCHS = 30
-    MODEL_NAME = "Final_Model_Other-10-0.01871-0.03438 VALID" #"model_instruments_other-10-0.00635"
+    EPOCHS = 201
+    MODEL_NAME = "model_a_low_val" #"model_instruments_other-10-0.00635"
 
     ''' first training'''
     # for i in range(0,1):
@@ -118,13 +118,27 @@ def main():
     #   variational_auto_encoder.save("model_otherVOCAL_BN_mae")
 
     '''repeated training'''  
-    # print("new learnn rate:",LEARNING_RATE)
+    print("new learnn rate:",LEARNING_RATE)
     for i in range(1):
-      variational_auto_encoder = AutoEncoder.load("Final_Model_Other_b1-1-0.01968-0.03594") 
-      variational_auto_encoder.name="Final_Model_Other_b1"
+      variational_auto_encoder = AutoEncoder.load("model_a_low_val-5-0.00272-0.00468") 
+      variational_auto_encoder.name="model_a_low_val"
       variational_auto_encoder.compile(learning_rate=LEARNING_RATE)       
       variational_auto_encoder.train_on_batch(BATCH_SIZE,EPOCHS)    
-      variational_auto_encoder.save("Final_Model_Other_b1")
+      variational_auto_encoder.save("model_otherVOCAL_BN_mae")
+
+      
+
+    '''repeated training'''  
+    # print("new learnn rate:",LEARNING_RATE)
+    # for i in range(1):
+      # variational_auto_encoder = AutoEncoder.load("Final_Model_Other_e1") 
+      # variational_auto_encoder.name="Final_Model_Other_extra_songs"
+      # variational_auto_encoder.compile(learning_rate=LEARNING_RATE)       
+      # variational_auto_encoder.train_on_batch(BATCH_SIZE,EPOCHS)    
+      # variational_auto_encoder.save("Final_Model_Other_extra_songs")
+
+
+      
 
 if __name__=="__main__":
     main()
