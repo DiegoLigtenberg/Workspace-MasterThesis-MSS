@@ -47,6 +47,19 @@ print(logger)
 # b = f"{a}{None}"
 # print(b)
 # asd
+
+import librosa
+from pydub import AudioSegment
+from scipy.io import wavfile
+
+# sound = AudioSegment.from_file("track_output/other_predict.wav",format="wav")
+raw,sound = wavfile.read('track_output/other_predict.wav')
+shifted = sound * (2 ** 31 - 1)  
+ints = shifted.astype(np.int32)
+sound = AudioSegment(data=ints, sample_width=4, frame_rate=44100, channels=1)
+sound.export("track_output/other_predict.mp3",format="mp3")
+asd
+
 import matplotlib.pyplot as plt
 x_train = np.load("mss_evaluate_data/database_test/database_mse_original.npy")
 y_train = np.load("mss_evaluate_data/database_test/database_sdr_original.npy")

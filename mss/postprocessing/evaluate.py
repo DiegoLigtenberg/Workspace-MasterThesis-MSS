@@ -1,22 +1,7 @@
-from audioop import minmax
-from math import prod
-from mss.preprocessing.preprocesssing import MinMaxNormalizer
-
 import numpy as np
-import matplotlib.pyplot as plt
-# from auto_encoder_vanilla import VariationalAutoEncoder
-# from mss.models.auto_encoder import AutoEncoder
-from mss.models.auto_encoder_other import AutoEncoder
-from mss.models.atrain import load_fsdd
-import librosa
-import librosa.display
-from scipy.io import wavfile
-from scipy.signal import wiener
-import tensorflow as tf
-from tensorflow.keras import backend as K
-from mss.postprocessing.generator_c import *
-
 from mss.utils.dataloader import natural_keys, atof
+from mss.postprocessing.generator_c import *
+from mss.preprocessing.preprocesssing_main import *
 import glob
 import os
 import pickle
@@ -35,17 +20,19 @@ For each track in track_input
 4) Evaluate tracks
 '''
 
-class EncodeTestData():
+TEST_DATA_DIR = "G:/Thesis/test/mixture/"
+
+class EncodedTestData():
     def __init__(self, save=False):
         self.save = save
         self.filelist_X, self.filelist_Y = self.load_musdb()
 
     def load_musdb(self):
         def save_pickle():
-            filelist_X = glob.glob(os.path.join("G:/Thesis/test/mixture", '*'))
+            filelist_X = glob.glob(os.path.join(f"{TEST_DATA_DIR}mixture", '*'))
             filelist_X.sort(key=natural_keys)
             filelist_X = filelist_X[0::]
-            filelist_Y = glob.glob(os.path.join("G:/Thesis/test/other", '*'))
+            filelist_Y = glob.glob(os.path.join(f"{TEST_DATA_DIR}other", '*'))
             filelist_Y.sort(key=natural_keys)
             filelist_Y = filelist_Y[0::]
 
@@ -78,55 +65,50 @@ class EncodeTestData():
         filelist_Y = pickle.load(open("mss_evaluate_data/test_Y.pkl", "rb"))
         return filelist_X, filelist_Y
 
-    def evaluate(self):
-        '''evaluates each song in musdb test database'''
-        # Split the songs in test dataset in songs -> chunks
-        for song_x, song_y in zip(self.filelist_X, self.filelist_Y):
-            print(len(song_x))
-       
-
-            x_train = []
-            y_train = []
-
-            for i, file in enumerate(song_x):
-                normalized_spectrogram = np.load(file)
-                x_train.append(normalized_spectrogram)
-
-            for i, file in enumerate(song_y):
-                normalized_spectrogram = np.load(file)
-                y_train.append(normalized_spectrogram)
-
-            x_train = np.array(x_train)
-            y_train = np.array(y_train)
-            break
-        return x_train, y_train
-
-class Generate():
-    '''takes as input x_mixture , y_other'''
+class Separator():
+    '''
+    separator is able to convert input songs to predicted waveforms 
+    takes as input x_mixture , y_other'''
     
     def __init__(self) -> None:
-        self.auto_encoder = AutoEncoder.load("Final_Model_Other-10-0.01871-0.03438 VALID") 
-        self.filelist_X,self.filelist_Y = EncodeTestData(save=False).load_musdb()
+        pass
 
-        self.song_iterator = -1
-        # song is 1 lower than when you start songs counting from 1 !
-        self.file_length = len(self.filelist_X)
-        self.gen()
-        print("done")
-
-    def gen_eval(self):
-        '''generate and evaluate based on sdr'''
-        # for song_x, song_y in zip(self.filelist_X, self.filelist_Y):
+    def gen_eval(self): 
         while self.song_iterator < self.file_length:
             self.song_iterator+=1
-            # yield all the chunks (mixture,target) of a test song
             yield self.filelist_X[self.song_iterator], self.filelist_Y[self.song_iterator] 
 
-    def gen(self):
+    def evaluate_musdb_test(self):
+        '''
+        inp: converts npy spectrograms (encoded test data) to evaluation metrics
+        '''
+        self.filelist_X,self.filelist_Y = EncodedTestData(save=False).load_musdb()
+        self.file_length = len(self.filelist_X)
+        self.song_iterator = -1 # song is 1 lower than when you start songs counting from 1 !   
         gen = Generator()
         for i in range(self.file_length):    
             x_mixture_file_chunks,y_target_file_chunks = next(self.gen_eval())                
-            gen.generate_waveform(x_mixture_file_chunks,y_target_file_chunks,self.song_iterator,inference=False,save_mixture=True)
+            gen.generate_waveform(x_mixture_file_chunks,y_target_file_chunks,self.song_iterator,inference=False,save_mixture=False)
+        print("done")
+
+    def input_to_waveform(self):
+        self.preprocessor = init_Preprocessing()
+        for i in range(3):
+            try:
+                next(self.preprocessor.proces_input_track_generator())
+                print("worked")
+            except Exception as e:
+                print(type(e))
+        # load input track
+        # convert to chunks
+        # save as npy spectrogram
+        # separate
+        # save waveform
+
+        pass
 
 
-gener = Generate()
+
+separator = Separator()
+separator.input_to_waveform()
+# separator.evaluate_musdb_test()

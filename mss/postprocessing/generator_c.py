@@ -24,11 +24,11 @@ from matplotlib.pyplot import close
 DATAFOLDER = "mss_evaluate_data/database_test/"
 VISUALISATION_FOLDER = "mss_evaluate_data/visualisation/"
 
-SAVE_WAVEFORM = True           # if true: saves waveform of chosen model
+SAVE_WAVEFORM = False            # if true: saves waveform of chosen model
 SAVE_LOSS = False                # if true: saves loss and visualizes it (msa loss and sdr loss)
-VISUALIZE_SPECTROGRAM = False   # if true: saves spectrogram (predict/target/mixture) for each track
+VISUALIZE_SPECTROGRAM = True   # if true: saves spectrogram (predict/target/mixture) for each track
 VERBOSE = False                 # if true: only print sdr and msa metrics when uploading
-model = "_2" # empty strsing if no adjust
+model = "_3"                    # empty strsing if no adjust
 
 
 
@@ -76,10 +76,9 @@ class Generator():
 
                     # making sound fundamental and removing drums!    
                     # '''         
-                    x_train[x_train<=-0.0] = -.33                   # hardforce, only use this if first fails
-                    # x_train[(x_train<0.05) & (x_train >= 0.0)]  -=.025  # even more strict 
-                    x_train[(x_train<0.05) & (x_train >= 0.0)]  *=.2  # the lower the multiplication number ( closer to 0) -> the more sounds are removed
-                    x_train[(x_train<0.0) & (x_train > -0.2)]  /=.2   # the lower the division number (closer to 0) -> the more sound (drums) are removed, but also other sound
+                    # x_train[x_train<=-0.02] = -.33 # hardforce, only use this if first fails
+                    x_train[(x_train<0.1) & (x_train >= 0.0)]  *=.2 # the lower the multiplication number ( closer to 0) -> the more sounds are removed
+                    x_train[(x_train<0.0) & (x_train > -0.2)]  /=.2 # the lower the division number (closer to 0) -> the more sound (drums) are removed, but also other sound
                     x_train[(x_train<=-0.2)] = -.33
                     # '''
                     
@@ -183,7 +182,8 @@ class Generator():
             print(f"song {self.song_name.split('-')[0]}\t{round(song_sdr,5)}")
             self.database_msa.append(song_msa)
             self.database_sdr.append(song_sdr)
-            folder = f"{DATAFOLDER}"
+            folder = f"{VISUALISATION_FOLDER}loss_metrics/"
+            if not os.path.exists(folder): os.makedirs(folder)
             if SAVE_LOSS:
                 np.save(f"{folder}database_msa{model}",np.array(self.database_msa))
                 np.save(f"{folder}database_sdr{model}",np.array(self.database_sdr))
@@ -192,8 +192,8 @@ class Generator():
             self.estimate_list = []
 
     def visualize_loss(self):
-        x_msa = np.load(f"{DATAFOLDER}database_msa{model}.npy")
-        x_sdr = np.load(f"{DATAFOLDER}database_sdr{model}.npy")
+        x_msa = np.load(f"{VISUALISATION_FOLDER}loss_metrics/database_msa{model}.npy")
+        x_sdr = np.load(f"{VISUALISATION_FOLDER}loss_metrics/database_sdr{model}.npy")
         fig = plt.figure()
         ax = plt.subplot(111)
         ax.plot(x_msa, label='msa loss')
@@ -238,8 +238,6 @@ class Generator():
         name = f"{chunk}\t{self.song_name}-{chunk}\sdr\t"
         if VERBOSE: print(name,"\t",sdr,end="\r")
         return sdr   
-
-   
 
     def _load_spectrograms(self, x_mixture_file_chunks, y_target_file_chunks):
         x_mixture = []
