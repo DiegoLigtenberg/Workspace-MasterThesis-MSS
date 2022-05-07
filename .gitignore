@@ -160,3 +160,4 @@ trained_models/
 *.mp4
 *.stem.mp4
 *.h5
+*.png

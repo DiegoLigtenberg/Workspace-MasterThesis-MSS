@@ -93,12 +93,19 @@ class Separator():
 
     def input_to_waveform(self):
         self.preprocessor = init_Preprocessing()
-        for i in range(3):
-            try:
-                next(self.preprocessor.proces_input_track_generator())
-                print("worked")
-            except Exception as e:
-                print(type(e))
+        for i in range(2):
+            # encode the song as spectrogram
+            try: next(self.preprocessor.proces_input_track_generator()) 
+            except StopIteration as e: print("stopiteration")
+    
+        # use generator for waveform
+        # save waveform
+        
+        # delete save dir spectrogram
+
+
+    
+                
         # load input track
         # convert to chunks
         # save as npy spectrogram

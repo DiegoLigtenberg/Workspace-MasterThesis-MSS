@@ -388,7 +388,7 @@ class PreprocessingPipeline:
                 multi_track_keys = ["mixture"]
                 multi_track_values = [mixture]      
                 multi_tracks = dict(zip(multi_track_keys,multi_track_values)) 
-                self._process_file(multi_tracks,j,k,inference=True)
+                self._process_file(multi_tracks,j,k)
     
     def proces_input_track_generator(self):
         self.dataset_type = "inference"
@@ -405,7 +405,7 @@ class PreprocessingPipeline:
                 multi_track_keys = ["mixture"]
                 multi_track_values = [mixture]      
                 multi_tracks = dict(zip(multi_track_keys,multi_track_values)) 
-                self._process_file(multi_tracks,j,k)
+                self._process_file(multi_tracks,j,k,inference=True)
             print(self.proces_iterator)
             yield None
 
