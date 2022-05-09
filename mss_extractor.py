@@ -1,5 +1,6 @@
 import mss
 
+mss.Separator().input_to_waveform()
 
 
 

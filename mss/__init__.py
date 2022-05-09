@@ -7,7 +7,8 @@ from mss import misc
 
 
 '''
-functions that you want to show when using base xair import
+functions that you want to show when using base mss import
 ''' 
+from mss.postprocessing.separate import Separator
 # from mss.models.auto_encoder import VariationalAutoEncoder
 # from mss.models.auto_encoder import VariationalAutoEncoder

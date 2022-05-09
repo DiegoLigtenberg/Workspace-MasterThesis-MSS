@@ -51,7 +51,28 @@ print(logger)
 import librosa
 from pydub import AudioSegment
 from scipy.io import wavfile
+a = []
 
+a = "OnlyMP3.net - Legends Never Die (ft. Against The Current) [OFFICIAL AUDIO]  Worlds 2017 - League of Legends-4Q46xYqUwZQ-192k-1638883605927.mp3"
+
+# target_frequency = 6000 
+# matrix_value = int((target_frequency/20000) *2048)
+# print(matrix_value)
+# matrix
+a = [1,2,3,4]
+print(len(a))
+for i in a:
+    print(i)
+print(a.split(".")[-1])
+base = ".".join((a.split(".")[:-1]))+"."
+extension = "wav"
+print(extension)
+print(base+extension)
+# if a.split(".")[1] != ".wav":
+    # a = a.split(".")[-1:]+".wav"
+# print(a)
+
+asd
 # sound = AudioSegment.from_file("track_output/other_predict.wav",format="wav")
 raw,sound = wavfile.read('track_output/other_predict.wav')
 shifted = sound * (2 ** 31 - 1)  

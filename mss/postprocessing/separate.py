@@ -1,4 +1,3 @@
-import numpy as np
 from mss.utils.dataloader import natural_keys, atof
 from mss.postprocessing.generator_c import *
 from mss.preprocessing.preprocesssing_main import *
@@ -22,19 +21,17 @@ For each track in track_input
 
 TEST_DATA_DIR = "G:/Thesis/test/mixture/"
 
-class EncodedTestData():
-    def __init__(self, save=False):
-        self.save = save
+class EncodedSpectrograms():
+    '''returns directory of encoded spectrograms in a list'''
+    def __init__(self):
         self.filelist_X, self.filelist_Y = self.load_musdb()
 
-    def load_musdb(self):
+    def load_musdb(self,save=False):
         def save_pickle():
             filelist_X = glob.glob(os.path.join(f"{TEST_DATA_DIR}mixture", '*'))
             filelist_X.sort(key=natural_keys)
-            filelist_X = filelist_X[0::]
             filelist_Y = glob.glob(os.path.join(f"{TEST_DATA_DIR}other", '*'))
             filelist_Y.sort(key=natural_keys)
-            filelist_Y = filelist_Y[0::]
 
             filelist_X_new = []
             file_list_Y_new = []
@@ -59,21 +56,27 @@ class EncodedTestData():
                 pickle.dump(filelist_X_new, f)
             with open('mss_evaluate_data/test_Y.pkl', 'wb') as f:
                 pickle.dump(file_list_Y_new, f)
-        if self.save:
+        if save:
             save_pickle()
         filelist_X = pickle.load(open("mss_evaluate_data/test_X.pkl", "rb"))
         filelist_Y = pickle.load(open("mss_evaluate_data/test_Y.pkl", "rb"))
         return filelist_X, filelist_Y
-
+    
+    def load_inference(self):
+        filelist_X = glob.glob(os.path.join(f"{TEMP_INFERENCE_SAVE_DIR}", '*'))
+        filelist_X.sort(key=natural_keys)        
+        return filelist_X
+        
 class Separator():
     '''
     separator is able to convert input songs to predicted waveforms 
     takes as input x_mixture , y_other'''
     
     def __init__(self) -> None:
-        pass
+        self.encoded_spectrograms = EncodedSpectrograms()        
+        self.gen = Generator()
 
-    def gen_eval(self): 
+    def _gen_eval(self): 
         while self.song_iterator < self.file_length:
             self.song_iterator+=1
             yield self.filelist_X[self.song_iterator], self.filelist_Y[self.song_iterator] 
@@ -82,40 +85,47 @@ class Separator():
         '''
         inp: converts npy spectrograms (encoded test data) to evaluation metrics
         '''
-        self.filelist_X,self.filelist_Y = EncodedTestData(save=False).load_musdb()
+        self.filelist_X,self.filelist_Y = self.encoded_spectrograms.load_musdb(save=False)
         self.file_length = len(self.filelist_X)
         self.song_iterator = -1 # song is 1 lower than when you start songs counting from 1 !   
-        gen = Generator()
+        
         for i in range(self.file_length):    
-            x_mixture_file_chunks,y_target_file_chunks = next(self.gen_eval())                
-            gen.generate_waveform(x_mixture_file_chunks,y_target_file_chunks,self.song_iterator,inference=False,save_mixture=False)
+            x_mixture_file_chunks,y_target_file_chunks = next(self._gen_eval())                
+            self.gen.generate_waveform(x_mixture_file_chunks,y_target_file_chunks,self.song_iterator,inference=False,save_mixture=False)
         print("done")
 
     def input_to_waveform(self):
         self.preprocessor = init_Preprocessing()
-        for i in range(2):
-            # encode the song as spectrogram
-            try: next(self.preprocessor.proces_input_track_generator()) 
-            except StopIteration as e: print("stopiteration")
-    
-        # use generator for waveform
-        # save waveform
         
-        # delete save dir spectrogram
+        # delete temp folder if it exists
+        try: self._delete_temp()
+        except FileNotFoundError as e: print(e)
 
+        # for all songs in input directory: use mss loop
+        for i in range(self.preprocessor.loader.input_track_len):
+            # encode the song as spectrogram
+            file_name = ""
+            try: file_name = next(self.preprocessor.proces_input_track_generator()) 
+            except StopIteration as e: break # stops running all code beneath
 
-    
-                
-        # load input track
-        # convert to chunks
-        # save as npy spectrogram
-        # separate
-        # save waveform
+            # use generator to generate and save waveform
+            x_mixture = self.encoded_spectrograms.load_inference()
+            self.gen.generate_waveform(x_mixture_file_chunks=x_mixture,inference=True,save_mixture=False,file_name=file_name)            
+            
+            # delete save dir spectrogram
+            self._delete_temp()
 
-        pass
+    def _delete_temp(self):
+        for f in os.listdir(TEMP_INFERENCE_SAVE_DIR):
+            assert f[-4:] == ".npy", f"illegal file extension found: {f[-4:]} file.\t can only handle .npy files."
+            os.remove(f"{TEMP_INFERENCE_SAVE_DIR}/{f}")
+        assert TEMP_INFERENCE_SAVE_DIR == "temp_inference", f"INFERENCE SAVE DIR MAY NOT BE CHANGED"
+        os.rmdir(TEMP_INFERENCE_SAVE_DIR)
 
+def main():
+    separator = Separator()
+    separator.input_to_waveform()
+    # separator.evaluate_musdb_test()
 
-
-separator = Separator()
-separator.input_to_waveform()
-# separator.evaluate_musdb_test()
+if __name__=="__main__":
+    main()

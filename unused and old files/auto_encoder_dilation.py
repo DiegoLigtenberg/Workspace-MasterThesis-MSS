@@ -58,7 +58,7 @@ class AutoEncoder():
         tf.random.set_seed(1)
         # self.weight_initializer = tf.initializers. TruncatedNormal(mean=0., stddev=1/1024)
         self.weight_initializer = tf.keras.initializers.TruncatedNormal(
-            mean=0, stddev=0.01, seed=None
+            mean=0, stddev=0.05, seed=None
         )
 
         '''private and protected does not exist in python, so this is just convention, but not neccesary!'''
@@ -237,7 +237,6 @@ class AutoEncoder():
                                         1:]  # [2, 7 ,7 , 32] # 4 dimensional array ( batch size x width x height x channels )
         model = Flatten()(model)
         model = Dense(self.latent_space_dim,activation="gelu", name="encoder_output")(model)  # dimensionality of latent space -> outputshape
-        model = Dense(self.latent_space_dim,activation="gelu", name="encoder_outp2ut")(model)
         # each output layer in dense layer is value between 0 and 1, if the value is highest -> then we pick that output
         # for duo classification you have 1 layer between 0 and 1 , if the value is > 0.5 then we pick that output
 

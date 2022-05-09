@@ -33,7 +33,7 @@ from mss.settings.settings import N_FFT,HOP_LENGTH,SAMPLE_RATE,CHUNK_DURATION,MO
 DATASET_DIR = "databases/database"
 SPECTROGRAM_SAVE_DIR = "train_spectrogram"
 MIN_MAX_VALUES_SAVE_DIR = "F:/Thesis/test"
-INFERENCE_SAVE_DIR = "temp_inference"
+TEMP_INFERENCE_SAVE_DIR = "temp_inference"       # do not change
 
 AUGMENT = True
 
@@ -55,7 +55,7 @@ class Loader():
         file = self.input_track_list[self.input_counter]
         signal = librosa.load(file,sr=self.sample_rate,mono=False)[0].T # transpose so stereo format is in (samples x stereo)        
         self.input_counter+=1
-        return signal # returns a list of librosa loaded track waveforms
+        return signal,file # returns a list of librosa loaded track waveforms
 
     def reset_input_counter(self):
         self.input_counter = 0
@@ -89,7 +89,10 @@ class Augmentation():
         self.signal = self.signal.transpose()
         if self.signal.shape[0] <=2: self.signal = self.signal.transpose() 
 
-        self.signal_l, self.signal_r = signal[:,0], signal[:,1]
+        
+        try: self.signal_l, self.signal_r = signal[:,0], signal[:,1]
+        except IndexError: self.signal_l,self.signal_r = signal,signal # signal already in mono (this fixes for whole pipeline)           
+
         augmented_track_l = self.augmentations[aug](self.signal_l)   
         augmented_track_r = self.augmentations[aug](self.signal_r)    
         augmented_track = np.vstack((augmented_track_l,augmented_track_r)).transpose()  
@@ -256,15 +259,20 @@ class Saver:
     def __init__(self,min_max_values_save_dir):                   
         self.min_max_values_save_dir = min_max_values_save_dir
     # np_array - source - train/val/test - i,j (track/sgement)
-    def save_feature(self,feature,source,dataset_type,i,j,aug,inference=False):     # a = augment number           
-        save_dir = f"{dataset_type}/{source}"
-        save_dir = Path("G:/Thesis")/Path(save_dir)
-        if inference: save_dir = INFERENCE_SAVE_DIR
-        if not os.path.exists(save_dir):
-            os.makedirs(save_dir)
-        save_file = f"{dataset_type}/{source}/inferene{i}-{j}-{aug}"   
-        save_file = Path("G:/Thesis")/Path(save_file)   
-        np.save(str(save_file)+".npy",feature)
+    def save_feature(self,feature,source,dataset_type,i,j,aug,inference=False):     # a = augment number  
+        if inference == False:         
+            save_dir = f"{dataset_type}/{source}"
+            save_dir = Path("G:/Thesis")/Path(save_dir)
+            if not os.path.exists(save_dir): os.makedirs(save_dir)
+            save_file = f"{dataset_type}/{source}/inference-{i}-{j}-{aug}"   
+            save_file = Path("G:/Thesis")/Path(save_file)   
+            np.save(str(save_file)+".npy",feature)
+        else:
+            save_dir = TEMP_INFERENCE_SAVE_DIR
+            if not os.path.exists(save_dir): os.makedirs(save_dir)
+            save_file = f"inference-{i}-{j}-{aug}"   
+            save_file = Path(save_dir)/Path(save_file)   
+            np.save(str(save_file)+".npy",feature)
         return save_file
         
     def save_min_max_values(self,min_max_values):
@@ -380,7 +388,7 @@ class PreprocessingPipeline:
         self.dataset_type = "inference"
         self.augmentor.amnt_augments = 1 # removes augmentation
         for j in range(self.loader.input_track_len):
-            full_mixture = self.loader.load_from_path()
+            full_mixture = self.loader.load_from_path()[0]
             chunk = self._num_expected_samples
             max_chunks = full_mixture.shape[0] // chunk
             for k in range(0,max_chunks+1):
@@ -397,17 +405,17 @@ class PreprocessingPipeline:
         while self.proces_iterator < self.loader.input_track_len:
             self.proces_iterator+=1            
             j = self.proces_iterator
-            full_mixture = self.loader.load_from_path()
+            full_mixture, file_name = self.loader.load_from_path()
+            file_name = file_name.split("track_input")[1]
             chunk = self._num_expected_samples
             max_chunks = full_mixture.shape[0] // chunk
-            for k in range(0,max_chunks+1):
+            for k in range(0,max_chunks):
                 mixture = full_mixture[k*chunk:(k+1)*chunk]
                 multi_track_keys = ["mixture"]
                 multi_track_values = [mixture]      
                 multi_tracks = dict(zip(multi_track_keys,multi_track_values)) 
                 self._process_file(multi_tracks,j,k,inference=True)
-            print(self.proces_iterator)
-            yield None
+            yield file_name
 
     def _process_file(self,multi_tracks,j,k,inference=False):
         # roll_rng fixes rng rol for time stretching (preserves sound duration of 3 seconds) and semni tones for pitch scaling
@@ -425,7 +433,7 @@ class PreprocessingPipeline:
                 # pad each source chunk
                 if self._is_padding_neccessary(signal):
                     signal = self._apply_padding(signal)
-                    print("padded to:\t",signal.shape)
+                    # print("padded to:\t",signal.shape)
                 # print("mean",np.mean(np.mean((signal),axis=1)))
                 feature = self.extractor.extract_stft(signal)
                 # print("mean",np.mean(np.mean((feature),axis=1)))
@@ -451,7 +459,7 @@ class PreprocessingPipeline:
                 if source == "accompaniment":
                     save_file = self.saver.save_feature(norm_feature,source,self.dataset_type,j,k,aug)
                     self._store_min_max(save_file,feature.min(),feature.max())       
-                print(f"processed file {save_file}",end="\r") 
+                if not inference: print(f"processed file {save_file}",end="\r") 
           
 
     def _is_padding_neccessary(self,signal):
@@ -492,23 +500,10 @@ def init_Preprocessing():
     preprocessing.saver = saver
     return preprocessing
 
-
-if __name__ == "__main__":
-    loader = Loader(SAMPLE_RATE,MONO)
-    padder = Padder("constant")
-    log_spectrogram_extractor = LogSpectroGramExtractor(N_FFT)
-    min_max_normalizer = MinMaxNormalizer(0,1)
-    augmentor = Augmentation(AUGMENT)
-    saver = Saver(MIN_MAX_VALUES_SAVE_DIR)
-
-    preprocessing = PreprocessingPipeline(chunk_duration=CHUNK_DURATION)
-    preprocessing.loader = loader
-    preprocessing.augmentor = augmentor
-    preprocessing.padder = padder
-    preprocessing.extractor = log_spectrogram_extractor
-    preprocessing.normalizer = min_max_normalizer
-    preprocessing.saver = saver
-
+def main():
+    preprocessing = init_Preprocessing()
     # preprocessing.process_database()
     preprocessing.process_input_track()
-    
+
+if __name__=="__main__":
+    main()
