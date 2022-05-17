@@ -1,6 +1,12 @@
 import mss
 
-mss.Separator().input_to_waveform()
+# generate post processed dataset
+separator = mss.Separator(post_processing=False)
+separator.input_to_waveform()
+
+# # generate raw model output dataset
+# separator.post_processing = False
+# separator.input_to_waveform()
 
 
 

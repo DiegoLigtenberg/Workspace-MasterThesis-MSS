@@ -1,3 +1,5 @@
+from fileinput import filename
+from unicodedata import name
 import numpy as np
 import librosa
 import librosa.display
@@ -14,14 +16,15 @@ DATAFOLDER = "mss_evaluate_data/database_test/"
 VISUALISATION_FOLDER = "mss_evaluate_data/visualisation/"
 
 SAVE_WAVEFORM = True             # if true: saves waveform of chosen model (may put of when evaluating musdb dataset)
-SAVE_LOSS = False                # if true: saves loss and visualizes it (msa loss and sdr loss)
+SAVE_LOSS = True                # if true: saves loss and visualizes it (msa loss and sdr loss)
 VISUALIZE_SPECTROGRAM = False    # if true: saves spectrogram (predict/target/mixture) for each track
 VERBOSE = False                  # if true: only print sdr and msa metrics when uploading
 model = "_3"                     # empty strsing if no adjust
 
 class Generator():
-    def __init__(self):
-        self.auto_encoder = AutoEncoder.load("Final_Model_Other_extra_songs-15-0.01687-0.03398 VALID")
+    def __init__(self,model="Model_Other_Vocal_AE",post_processing=True):
+        self.auto_encoder = AutoEncoder.load(model) # "Final_Model_Other_extra_songs-15-0.01687-0.03398 VALID" is same as "Moder_Other_Vocal_AE"
+        self.post_processing = post_processing
         self.database_msa = []
         self.database_sdr = []
         self.target_frequency = 5500 # above 5500 is lots of artefacts
@@ -62,7 +65,7 @@ class Generator():
                 if instance == "predict":
                     # predict
                     x_train = self.auto_encoder.model.predict(self.x_mixture[chunk:chunk+1])                       
-                    x_train = self.post_process_filter(x_train)
+                    if self.post_processing: x_train = self.post_process_filter(x_train)
                     # calculate msa
                     if inference == False:
                         self.song_msa.append(self.calculate_msa(x_train,chunk))                    
@@ -145,10 +148,16 @@ class Generator():
             if inference:
                 folder = "track_output"
                 if not os.path.exists(folder): os.makedirs(folder)
+
+
+                folder = "track_output/"+ file_name.split("\\")[1]
+                if not os.path.exists(folder): os.makedirs(folder)
+
                 if file_name.split(".")[-1] != "wav": # convert other file formats to.wav 
                     name_base = ".".join((file_name.split(".")[:-1]))+"."
                     name_extension = "wav"
                     file_name = name_base+name_extension
+                folder = "track_output"
                 wavfile.write(f"{folder}/{file_name}", SAMPLE_RATE, total_track)
             
             else:
@@ -252,18 +261,29 @@ class Generator():
 
     def post_process_filter(self,x_train):
         # post processing high pass filters to remove artefacts  
+        m_f_hundred = self.target_frequency-500
         x_train = np.squeeze(x_train) 
-        x_train[self.get_frequency(5000)::][x_train[self.get_frequency(5000):: ] > 0.055] =-.33     # remove all loud high percussion artefacts (HPA) from 5k to 5.5k 
-        x_train[self.get_frequency(5000)::][x_train[self.get_frequency(5000):: ] > -0.0] *=.01      # compress all HPA to be maximum of -40 DB
-        x_train[self.get_frequency(5000)::][x_train[self.get_frequency(5000):: ] > -0.1] -=.015     # all left over HPA are still softened by a constant        
-        # x_train[get_frequency(8000)::][x_train[get_frequency(8000):: ] > -0.2] -=.05              # all left over HPA from 8k + are softened by a constant (only when keeping HPA)
+        x_train[self.get_frequency(m_f_hundred)::][x_train[self.get_frequency(m_f_hundred):: ] > 0.055] =-.33     # remove all loud high percussion artefacts (HPA) from 5k to 5.5k 
+        x_train[self.get_frequency(m_f_hundred)::][x_train[self.get_frequency(m_f_hundred):: ] > -0.0] *=.01      # compress all HPA to be maximum of -40 DB
+        x_train[self.get_frequency(m_f_hundred)::][x_train[self.get_frequency(m_f_hundred):: ] > -0.1] -=.015     # all left over HPA are still softened by a constant        
+        # x_train[get_frequency(8000)::][x_train[get_frequency(8000):: ] > -0.2] -=.05                            # all left over HPA from 8k + are softened by a constant (only when keeping HPA)
         
         x_train[self.matrix_value - (self.matrix_value-self.get_frequency(self.target_frequency-500)):self.matrix_value:][(x_train[self.matrix_value-(
-            self.matrix_value-self.get_frequency(self.target_frequency-500)):self.matrix_value:] > -0.2)] -= .1      # last 5k-5.5k frequencies tomed down
-        x_train[self.matrix_value::] = -.33                                                         # break wall limiter
+            self.matrix_value-self.get_frequency(self.target_frequency-500)):self.matrix_value:] > -0.2)] -= .1   # last 5k-5.5k frequencies tomed down
+        x_train[self.matrix_value::] = -.33                                                                       # break wall limiter
         x_train = np.expand_dims(x_train,axis=(0,-1))        
-
-        x_train[::][(x_train[::]<0.1) & (x_train[::] >= 0.0)] *=.2                    
-        x_train[(x_train<0.0) & (x_train > -0.2)]  /=.2                                             # the lower the division number (closer to 0) -> the more sound (drums) are removed, but also other sound
-        x_train[(x_train<=-0.2)] = -.33                                                             # remove all sounds smaller than -60DB
+    
+        x_train[::][(x_train[::]<0.1) & (x_train[::] >= 0.0)] *=.2             
+        x_train[(x_train<0.0) & (x_train > -0.2)]  /=.2                                                            # the lower the division number (closer to 0) -> the more sound (drums) are removed, but also other sound
+        x_train[(x_train<=-0.2)] = -.33     
+        
+        '''alternative post processing
+        m_f_hundred = self.target_frequency-500       
+        x_train[::][(x_train[::]<0.1) & (x_train[::] >= 0.0)] *=.8      
+        x_train = np.squeeze(x_train) 
+        x_train[self.get_frequency(m_f_hundred)::][x_train[self.get_frequency(m_f_hundred):: ] > -0.1] -=.2   
+        x_train = np.expand_dims(x_train,axis=(0,-1))                      
+        x_train[(x_train<0.0) & (x_train > -0.2)]  /=.8                                                            # the lower the division number (closer to 0) -> the more sound (drums) are removed, but also other sound
+        x_train[(x_train<=-0.2)] = -.33   
+        '''                                                                                  # remove all sounds smaller than -60DB
         return x_train

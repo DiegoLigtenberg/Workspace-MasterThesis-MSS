@@ -43,7 +43,8 @@ class Loader():
         self.sample_rate = sample_rate
         self.mono = mono
       
-        self.input_track_list = glob.glob(os.path.join("track_input", '*'))
+        self.input_track_list = glob.glob(os.path.join("track_input", '*/*.wav'),recursive=True)
+        self.input_track_list.extend(glob.glob(os.path.join("track_input", '*/*.wav'),recursive=True))
         self.input_track_list.sort(key=natural_keys)
         self.input_track_len = len(self.input_track_list)  
         self.input_counter = 0    
@@ -380,8 +381,8 @@ class PreprocessingPipeline:
                     # print(5/0)
                     
             self.saver.save_min_max_values(self.min_max_values) # should be outside loop
-            print(f"empty segments in all {self.dataset_type}: {min_max_normalizer.empty_segments}")
-            min_max_normalizer.empty_segments = 0
+            print(f"empty segments in all {self.dataset_type}: {self.normalizer.empty_segments}")
+            self.normalizer.empty_segments = 0
         print("finished.")
                 
     def process_input_track(self):
@@ -402,13 +403,14 @@ class PreprocessingPipeline:
         self.dataset_type = "inference"
         self.augmentor.amnt_augments = 1 # removes augmentation
         
+       
         while self.proces_iterator < self.loader.input_track_len:
             self.proces_iterator+=1            
             j = self.proces_iterator
             full_mixture, file_name = self.loader.load_from_path()
             file_name = file_name.split("track_input")[1]
             chunk = self._num_expected_samples
-            max_chunks = full_mixture.shape[0] // chunk
+            max_chunks = max(1,full_mixture.shape[0] // chunk) # if < 3 seconds, i.e. not padded yet
             for k in range(0,max_chunks):
                 mixture = full_mixture[k*chunk:(k+1)*chunk]
                 multi_track_keys = ["mixture"]

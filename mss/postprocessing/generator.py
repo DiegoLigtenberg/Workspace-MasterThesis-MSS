@@ -16,9 +16,9 @@ from tensorflow.keras import backend as K
 
 
 def main():
-    auto_encoder = AutoEncoder.load("Final_Model_Other_extra_songs-15-0.01687-0.03398 VALID")  #model_spectr for first_source_sep
+    auto_encoder = AutoEncoder.load("Model_Other_Vocal_AE")  #model_spectr for first_source_sep
     auto_encoder.summary()
-    b_train,y_train = load_fsdd("test") # note the amnt of datapoints load_fssd loads -> check the function
+    b_train,y_train = load_fsdd("inference") # note the amnt of datapoints load_fssd loads -> check the function
     (np.min(b_train),np.max(b_train))
     
 
@@ -29,7 +29,7 @@ def main():
     for r in range (1):
         # r=2
         total_track = []
-        for i in range(380,381,1): # test 140-160 should be very good! [8, 56, 112, 216, 312, 560]
+        for i in range(0,30,1): # test 140-160 should be very good! [8, 56, 112, 216, 312, 560]
             sound = i #132 test
 
             # weights = np.full_like(b_train[:1],1/prod(b_train[:1].shape))
@@ -58,10 +58,10 @@ def main():
                 # x_train[::][(x_train[::]<=-0.2)] = -.33
 
                 # x_train[(x_train<=0.1)] = -.33
-                x_train[:128][(x_train[:128]<0.1) & (x_train[:128] >= 0.0)]  *=.2 # the lower the multiplication number ( closer to 0) -> the more sounds are removed -> BAD actually EQ
-                x_train[975::][(x_train[975::]<0.1) & (x_train[975::] >= 0.0)]  *=.1 # high rfequency's we hear  harder even when decrease is softer
-                x_train[(x_train<0.0) & (x_train > -0.2)]  /=.2 # the lower the division number (closer to 0) -> the more sound (drums) are removed, but also other sound
-                x_train[(x_train<=-0.2)] = -.33
+                # x_train[:128][(x_train[:128]<0.1) & (x_train[:128] >= 0.0)]  *=.2 # the lower the multiplication number ( closer to 0) -> the more sounds are removed -> BAD actually EQ
+                # x_train[975::][(x_train[975::]<0.1) & (x_train[975::] >= 0.0)]  *=.1 # high rfequency's we hear  harder even when decrease is softer
+                # x_train[(x_train<0.0) & (x_train > -0.2)]  /=.2 # the lower the division number (closer to 0) -> the more sound (drums) are removed, but also other sound
+                # x_train[(x_train<=-0.2)] = -.33
                 pass
 
             x_val, y_val = b_train[sound:sound+1],y_train[sound:sound+1]

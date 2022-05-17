@@ -1,9 +1,12 @@
 from mss.utils.dataloader import natural_keys, atof
 from mss.postprocessing.generator_c import *
 from mss.preprocessing.preprocesssing_main import *
+from tqdm import tqdm
 import glob
 import os
 import pickle
+
+
 '''
 For each track in track_input
 
@@ -72,9 +75,10 @@ class Separator():
     separator is able to convert input songs to predicted waveforms 
     takes as input x_mixture , y_other'''
     
-    def __init__(self) -> None:
+    def __init__(self,post_processing=True) -> None:
+        self.post_processing = post_processing
         self.encoded_spectrograms = EncodedSpectrograms()        
-        self.gen = Generator()
+        self.gen = Generator(post_processing=post_processing)
 
     def _gen_eval(self): 
         while self.song_iterator < self.file_length:
@@ -89,7 +93,7 @@ class Separator():
         self.file_length = len(self.filelist_X)
         self.song_iterator = -1 # song is 1 lower than when you start songs counting from 1 !   
         
-        for i in range(self.file_length):    
+        for i in tqdm(range(self.file_length)):    
             x_mixture_file_chunks,y_target_file_chunks = next(self._gen_eval())                
             self.gen.generate_waveform(x_mixture_file_chunks,y_target_file_chunks,self.song_iterator,inference=False,save_mixture=False)
         print("done")
@@ -102,7 +106,7 @@ class Separator():
         except FileNotFoundError as e: print(e)
 
         # for all songs in input directory: use mss loop
-        for i in range(self.preprocessor.loader.input_track_len):
+        for i in (range(self.preprocessor.loader.input_track_len)):
             # encode the song as spectrogram
             file_name = ""
             try: file_name = next(self.preprocessor.proces_input_track_generator()) 
