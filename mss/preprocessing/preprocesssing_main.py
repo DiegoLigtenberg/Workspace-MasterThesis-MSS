@@ -127,8 +127,6 @@ class Augmentation():
         self.semni_tones = random.choice([-4,-3,-2,2,3,4])
     
         
-
-
   
 class Padder:
     '''responsible to apply zero padding to an array - works for stereo'''
@@ -391,8 +389,8 @@ class PreprocessingPipeline:
         for j in range(self.loader.input_track_len):
             full_mixture = self.loader.load_from_path()[0]
             chunk = self._num_expected_samples
-            max_chunks = full_mixture.shape[0] // chunk
-            for k in range(0,max_chunks+1):
+            max_chunks = math.ceil(full_mixture.shape[0] / chunk)
+            for k in range(0,max_chunks):
                 mixture = full_mixture[k*chunk:(k+1)*chunk]
                 multi_track_keys = ["mixture"]
                 multi_track_values = [mixture]      
@@ -410,7 +408,7 @@ class PreprocessingPipeline:
             full_mixture, file_name = self.loader.load_from_path()
             file_name = file_name.split("track_input")[1]
             chunk = self._num_expected_samples
-            max_chunks = max(1,full_mixture.shape[0] // chunk) # if < 3 seconds, i.e. not padded yet
+            max_chunks = max(1,math.ceil(full_mixture.shape[0] / chunk)) # if < 3 seconds, i.e. not padded yet
             for k in range(0,max_chunks):
                 mixture = full_mixture[k*chunk:(k+1)*chunk]
                 multi_track_keys = ["mixture"]
