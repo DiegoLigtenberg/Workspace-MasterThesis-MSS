@@ -3,19 +3,20 @@ import glob
 import os
 import pandas as pd
 import numpy as np
-from mss.utils.dataloader import natural_keys, atof
+from mss.utils.dataloader import natural_keys
 '''
 Instrument to Y_target for IRMAS Train 
 sigmoid + binary cross entropy
 '''
 
 
-print(396900//44100)
+# print(396900//44100)
 
-asd
+# asd
 data = glob.glob(os.path.join("F:\Thesis\instr classification dataset\IRMAS-TestingData-Part1", '*/*'),recursive=True)
-# data = sorted(data,key=os.path.getmtime)
-# data.sort(key=natural_keys)
+data.sort(key=natural_keys)
+
+
 instrument_to_val_test = {  "cel":0, 
                             "cla":1,
                             "flu":2,
@@ -62,28 +63,33 @@ instrument_count_matrix = np.delete(instrument_count_matrix,(0),axis=0) # delete
     # break
 
 df = pd.DataFrame(instrument_count_matrix,columns=columns)
-
+print(df)
+asd
 df.to_csv("MIR_test.csv")
 # df["sum"] = df.sum(axis=1)
 
 # print(len(df[df["sum"]==4]))
 # df
 
-asd
-data = glob.glob(os.path.join("track_output_with_post", '*/*.wav'),recursive=True)
+
+
+'''
+# asd
+data = glob.glob(os.path.join("MIR DATASETS/train dataset/track_output_base", '*/*.wav'),recursive=True)
+data.sort(key=natural_keys)
 
 # if "\cel\" is in the file dir name -> it means the folder is cello
-instrument_to_val = {   "\\cel\\":0, 
-                        "\\cla\\":1,
-                        "\\flu\\":2,
-                        "\\gac\\":3,
-                        "\\gel\\":4,
-                        "\\org\\":5,
-                        "\\pia\\":6,
-                        "\\sax\\":7,
-                        "\\tru\\":8,
-                        "\\vio\\":9,
-                        "\\voi\\":10,
+instrument_to_val = {   "\\cel\\": 0, 
+                        "\\cla\\": 1,
+                        "\\flu\\": 2,
+                        "\\gac\\": 3,
+                        "\\gel\\": 4,
+                        "\\org\\": 5,
+                        "\\pia\\": 6,
+                        "\\sax\\": 7,
+                        "\\tru\\": 8,
+                        "\\vio\\": 9,
+                        "\\voi\\": 10,
 }
 
 instrument_count_matrix = np.zeros(11)
@@ -99,14 +105,14 @@ instrument_count_matrix = np.delete(instrument_count_matrix,(0),axis=0) # delete
 columns=["cel","cla","flu","gac","gel","org","pia","sax","tru","vio","voi"]
 df = pd.DataFrame(instrument_count_matrix,columns=columns)
 
-print(df.iloc)
+print(df)
 
 X = data
 Y = df
+df.to_csv("MIR_Train.csv")
 
 
-
-
+'''
 
 # for file in data:
 #     print(file)

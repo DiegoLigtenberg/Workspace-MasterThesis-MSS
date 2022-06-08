@@ -44,7 +44,7 @@ class Loader():
         self.mono = mono
       
         self.input_track_list = glob.glob(os.path.join("track_input", '*/*.wav'),recursive=True)
-        self.input_track_list.extend(glob.glob(os.path.join("track_input", '*/*.wav'),recursive=True))
+        # self.input_track_list.extend(glob.glob(os.path.join("track_input", '*/*.wav'),recursive=True))
         self.input_track_list.sort(key=natural_keys)
         self.input_track_len = len(self.input_track_list)  
         self.input_counter = 0    

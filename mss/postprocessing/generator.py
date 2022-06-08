@@ -29,7 +29,7 @@ def main():
     for r in range (1):
         # r=2
         total_track = []
-        for i in range(0,30,1): # test 140-160 should be very good! [8, 56, 112, 216, 312, 560]
+        for i in range(0,5,1): # test 140-160 should be very good! [8, 56, 112, 216, 312, 560]
             sound = i #132 test
 
             # weights = np.full_like(b_train[:1],1/prod(b_train[:1].shape))
