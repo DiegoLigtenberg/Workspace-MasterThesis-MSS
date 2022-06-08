@@ -20,7 +20,16 @@ from skimage.transform import resize
 import pickle
 from pathlib import Path
 from mss.mir.mir_data_load import MIR_DataLoader
+from keras.callbacks import ModelCheckpoint
+from sklearn import metrics
 
+
+def existing_model(model_name,new_name):
+    conv_net = ConvNet.load(model_name)
+    conv_net._name = new_name
+    conv_net.summary()
+    conv_net.compile(3e-4)
+    return conv_net
 
 class ConvNet():
 
@@ -36,10 +45,11 @@ class ConvNet():
 
         self._name = ""
         self.weight_initializer = tf.keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None )
+        self.epoch_count = 1
         self._create_model()
 
-    def save(self, save_folder="."):
-        print("saved:",save_folder)
+    def save(self, save_folder=".",verbose=True):
+        if verbose: print("saved:",save_folder)
         self._create_folder_if_it_doesnt_exist(save_folder)
         self._save_parameters(save_folder)
         self._save_weights(save_folder)
@@ -86,29 +96,31 @@ class ConvNet():
 
     def summary(self, save_image=False):
         self.model.summary()
-    
+
     def compile(self, learning_rate=0.0001):
         
         optimizer = Adam(learning_rate=learning_rate)
         bce_loss = BinaryCrossentropy(from_logits=False)
-        self.model.compile(optimizer=optimizer, loss=bce_loss,metrics=[keras.metrics.BinaryAccuracy()]) #self.custom_loss)dw  OR  ['accuracy'] for exact matching 
-    
+        self.model.compile(optimizer=optimizer, loss=bce_loss,metrics=[keras.metrics.BinaryAccuracy()])# ,self.sklearnAUC],run_eagerly=True) #self.custom_loss)dw  OR  ['accuracy'] for exact matching 
     
     def train_on_generator(self,model,batch_size,epochs):
         dataloader = MIR_DataLoader()
         x_train, y_train = dataloader.load_data(train="train", model="base")
         x_test, y_test = dataloader.load_data("test", model=model)
-        # x_train = x_train[:500]
-        # y_train = y_train[:500]
+        # x_train = x_train[:50]
+        # y_train = y_train[:50]
         my_train_batch_generator = My_Custom_Generator(x_train, y_train, batch_size)
         my_test_batch_generator = My_Custom_Generator(x_test, y_test, batch_size)
+
+        # filepath="MIR_trained_models/mir_model_3/weights-improvement-{epoch:02d}-{val_binary_accuracy:.2f}.h5"
+        # checkpoint = ModelCheckpoint(filepath, monitor='accuracy', verbose=1, save_best_only=True, mode='max')
 
         self.model.fit(my_train_batch_generator,
                         epochs = epochs, 
                         verbose = 1,
                         shuffle=True,                        
                         validation_data=my_test_batch_generator,
-                        callbacks=[CustomCallback()]
+                        callbacks=[CustomCallback(self) ]#, checkpoint ]
         )
 
         # self.save(self._name)
@@ -123,7 +135,7 @@ class ConvNet():
         # model.add(layers.BatchNormalization())
         model.add(layers.Activation("relu"))
         model.add(layers.MaxPooling2D(pool_size=(self.conv_strides[i],self.conv_strides[i])))
-        # model.add(layers.Dropout(0.5))
+        model.add(layers.Dropout(0.2))
         return model
     
     def _dense_layer(self,model):
@@ -131,7 +143,7 @@ class ConvNet():
         model.add(layers.Dense(512,kernel_initializer=self.weight_initializer))
         model.add(layers.Activation("relu"))
         # model.add(layers.BatchNormalization())
-        # model.add(layers.Dropout(0.2))
+        model.add(layers.Dropout(0.3))
         model.add(layers.Dense(11))
         return model
     
@@ -156,11 +168,55 @@ class ConvNet():
         self.model = self._output_layer(self.model)
 
 class CustomCallback(keras.callbacks.Callback):
+    def __init__(self,conv_net):
+        self.conv_net = conv_net
+
+
     def on_epoch_end(self, epoch, logs=None):
         keys = list(logs.keys())
+        if self.conv_net.epoch_count == 1:            
+            self.conv_net._len_name = len(self.conv_net._name)
+
+        # if model already exists
+        try: self.conv_net.epoch_count = int(self.conv_net._name.split("_")[-1:][0])
+        except: pass
+        digit = self.conv_net._name.split("_")[-1:][0]
+        if digit.isdigit():
+            self.conv_net._name = self.conv_net._name[:-1].replace(digit,"")
+            self.conv_net.epoch_count+=1
+
+        self.conv_net._name = f"{self.conv_net._name[:self.conv_net._len_name]}_{self.conv_net.epoch_count}" # 100 epoch 
+
+        # replace double stripe if model already exists       
+        self.conv_net._name = self.conv_net._name.replace("__","_")
+
+        self.conv_net.epoch_count+=1
+        
+        # new_name = self.conv_net._name+"_"+self.conv_net.epoch_count
+        # conv_net = existing_model(model_name,new_name)
+
+        dataloader = MIR_DataLoader(verbose=False)
+        x_train, y_train = dataloader.load_data(train="train", model="base")
+        x_test, y_test = dataloader.load_data(train="test", model="base")
+        my_train_batch_generator = My_Custom_Generator(x_train, y_train, 1)
+        my_test_batch_generator = My_Custom_Generator(x_test, y_test, 1)
+
+        preds = self.conv_net.model.predict(my_test_batch_generator)
+
+        from sklearn import metrics
+        aucs = []
+        for i in range(11):
+            fpr, tpr, tresholds = metrics.roc_curve(y_test[:,i],preds[:,i])
+            auc = metrics.auc(fpr,tpr)
+            aucs.append(auc)
+        
+        print (f" - m_auc: {round(np.mean(aucs),4)}")
+
+        
+        self.conv_net.save(self.conv_net._name,verbose=False)
+
+
         # print("End epoch {} of training; got log keys: {}".format(epoch, keys))
-
-
 
 
 class My_Custom_Generator(keras.utils.all_utils.Sequence):
@@ -194,88 +250,6 @@ class My_Custom_Generator(keras.utils.all_utils.Sequence):
                for file_name in batch_x]), np.array(batch_y)
 
 
-def load_data():
-    data = glob.glob(os.path.join("MIR_datasets/train_dataset/spectrogram_base", '*'),recursive=True)
-    # data = sorted(data,key=os.path.getmtime)
-    data.sort(key=natural_keys)
-    instrument_to_val_test = {  "cel":0, 
-                                "cla":1,
-                                "flu":2,
-                                "gac":3,
-                                "gel":4,
-                                "org":5,
-                                "pia":6,
-                                "sax":7,
-                                "tru":8,
-                                "vio":9,
-                                "voi":10,
-                            }
-
-    x_train = []
-    y_train = pd.read_csv("MIR_datasets/MIR_train_labels.csv").to_numpy()
-    # y_train = np.delete(y_train, (0), axis=1) # make sure we dont save firrst column!
-
-    for i,file in enumerate(data):
-        x_train.append(file)
-
-   
 
 
-    x_train = np.array(x_train)
-    y_train = np.array(y_train)
-    return x_train,y_train
-
-if __name__=="__main__":   
-    
-    x_train,y_train = load_data()
-    x_train = x_train[0:8]
-    y_train = y_train[0:8]
-    
-    # x_valid,yvalid = load_data() #valid data
-
-    # print(x_train)
-    # print(y_train)
-    # asd
-        
-    conv_net = ConvNet(
-        input_shape=(2048, 128, 1),
-        conv_filters=(16, 32,  64, 128, 256,  256, 256), 
-        conv_kernels=(3,   3,   3,   3,    2,   2,  2),
-        conv_strides=(2,   2,   2,   2,    2,   2,  2), 
-    )
-
-    batch_size = 2
-    epochs = 10
-    # batch_size = 
-
-    my_training_batch_generator = My_Custom_Generator(x_train, y_train, batch_size) #x_train file names
-
-    # my_training_batch_generator_test = My_Custom_Generator(x_valid,y_valid)
-
-
-    inp = my_training_batch_generator.__getitem__(0)[0]
-    # print(inp)
-    # print(inp.shape)
-    # asd
-
-    conv_net._name = ""
-    conv_net.summary()
-    conv_net.compile(3e-4)
-    len_data = len(x_train)
-    conv_net.train_on_generator(my_training_batch_generator,epochs) 
-
-    conv_net.save("first test")
-  
-
-    preds  = conv_net.model.predict(inp).tolist() # thisd is predict
-    preds = preds[0]
-    # print(preds)
-    # [preds] = preds # only take first element in batch
-    # print(preds)
-    from scipy.special import expit
-    print(preds)
-    # preds = expit(preds)
-    preds = [round(num,2) for num in preds]
-    print(preds)
-    print(y_train[0:4])
 

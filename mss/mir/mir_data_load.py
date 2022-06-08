@@ -2,15 +2,16 @@ import glob
 import os
 import pandas as pd
 import numpy as np
-from sqlalchemy import null
+import keras
 from mss.utils.dataloader import natural_keys
 
 class MIR_DataLoader():
 
-    def __init__(self):
+    def __init__(self,verbose=True):
         self.train = None
         self.model = None
         self.paths = None
+        self.verbose = verbose
 
     def load_data(self,train,model):
         '''
@@ -44,7 +45,7 @@ class MIR_DataLoader():
             "MIR_datasets/test_dataset/spectrogram_with_post",
         ]
         paths = spectrogram_paths[self.paths]
-        print(paths)
+        if self.verbose: print(paths)
 
         data = glob.glob(os.path.join(paths, '*'),recursive=True)
         data.sort(key=natural_keys)
@@ -61,8 +62,30 @@ class MIR_DataLoader():
 
         x_train = np.array(x_train)
         y_train = np.array(y_train)
-        print(f"Loaded data: {self.train} - {self.model} ",x_train.shape,y_train.shape)
+        if self.verbose:print(f"Loaded data: {self.train} - {self.model} ",x_train.shape,y_train.shape)
         return x_train,y_train
+
+
+class My_Custom_Generator(keras.utils.all_utils.Sequence):
+    '''
+    input:  (X_file names, Y labels)
+    output: (X_file.npy, Y_labels)
+    '''
+
+    def __init__(self,image_file_names,labels,batch_size):
+        self.image_file_names = image_file_names
+        self.labels = labels
+        self.batch_size = batch_size
+
+    def __len__(self):
+        return (np.ceil(len(self.image_file_names) / float(self.batch_size))).astype(np.int)
+    
+    def __getitem__(self,idx):
+        batch_x = self.image_file_names[idx * self.batch_size : (idx+1) * self.batch_size]
+        batch_y = self.labels[idx*self.batch_size : (idx+1) * self.batch_size]
+        return np.array([
+            (np.load(str(file_name)))
+               for file_name in batch_x]), np.array(batch_y)
 
 if __name__== "__main__":
     loader = MIR_DataLoader()
