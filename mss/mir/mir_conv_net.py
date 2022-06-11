@@ -22,7 +22,7 @@ from pathlib import Path
 from mss.mir.mir_data_load import MIR_DataLoader
 from keras.callbacks import ModelCheckpoint
 from sklearn import metrics
-
+from tensorflow.keras import regularizers
 
 def existing_model(model_name,new_name):
     conv_net = ConvNet.load(model_name)
@@ -131,20 +131,20 @@ class ConvNet():
         return model
 
     def _conv_block(self,model,i):
-        model.add(layers.Conv2D(self.conv_filters[i],self.conv_kernels[i],padding="same",kernel_initializer=self.weight_initializer) )
+        model.add(layers.Conv2D(self.conv_filters[i],self.conv_kernels[i],padding="same",kernel_initializer=self.weight_initializer,kernel_regularizer=regularizers.l1(1e-4)) )
         # model.add(layers.BatchNormalization())
         model.add(layers.Activation("relu"))
         model.add(layers.MaxPooling2D(pool_size=(self.conv_strides[i],self.conv_strides[i])))
-        model.add(layers.Dropout(0.2))
+        model.add(layers.Dropout(0.3)) #0.2
         return model
     
     def _dense_layer(self,model):
         model.add(layers.Flatten())
-        model.add(layers.Dense(512,kernel_initializer=self.weight_initializer))
+        model.add(layers.Dense(512,kernel_initializer=self.weight_initializer,kernel_regularizer=regularizers.l1(1e-4)))
         model.add(layers.Activation("relu"))
         # model.add(layers.BatchNormalization())
-        model.add(layers.Dropout(0.3))
-        model.add(layers.Dense(11))
+        model.add(layers.Dropout(0.5)) #0.3
+        model.add(layers.Dense(11,kernel_regularizer= regularizers.l1(1e-4)))
         return model
     
     def _output_layer(self,model):

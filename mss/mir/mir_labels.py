@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 from mss.utils.dataloader import natural_keys
 
-PATHS = ["MIR_datasets/train_dataset/track_output_base","F:\Thesis\instr classification dataset\IRMAS-TestingData-Part1"] # paths to og files of irmas dataset
+PATHS = ["MIR_datasets/train_dataset/track_output_base","F:\Thesis\instr classification dataset\IRMAS-TestingData-Part2"] # paths to og files of irmas dataset
 
 class LabelGenerator():
     '''
@@ -77,11 +77,11 @@ class LabelGenerator():
         if save:
             print("saved labels to MIR_datasets")
             if train: df.to_csv("MIR_datasets/MIR_train_labels.csv",index=False)
-            else:  df.to_csv("MIR_datasets/MIR_test_labels.csv",index=False)
+            else:  df.to_csv("MIR_datasets/MIR_test_labels2.csv",index=False)
         
 
 if __name__=="__main__":
-    label_generator_train = LabelGenerator(PATHS,train=True,save=True)
+    # label_generator_train = LabelGenerator(PATHS,train=True,save=True)
     label_generator_test = LabelGenerator(PATHS,train=False,save=True)
 
 

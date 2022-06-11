@@ -56,7 +56,7 @@ class MIR_DataLoader():
 
         y_train = []
         if self.train == "train":
-            y_train = pd.read_csv("MIR_datasets/MIR_train_labels.csv").to_numpy()
+            y_train = pd.read_csv("MIR_datasets/MIR_train_labels_merged.csv").to_numpy()
         if self.train == "test":
             y_train = pd.read_csv("MIR_datasets/MIR_test_labels.csv").to_numpy()
 

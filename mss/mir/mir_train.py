@@ -5,7 +5,7 @@ import numpy as np
 
 LEARNING_RATE = 3e-4  #mnist 0.0001 
 BATCH_SIZE = 16
-EPOCHS = 15
+EPOCHS = 100
 
 def new_model(model_name):
     conv_net = ConvNet(
@@ -27,7 +27,7 @@ def existing_model(model_name):
     return conv_net
 
 if __name__ == "__main__":
-    model_name = "mir_model_auc" # 100 epoch
+    model_name = "mir_model_base" # 100 epoch
     
     
     conv_net = new_model(model_name)
