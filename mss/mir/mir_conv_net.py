@@ -23,6 +23,7 @@ from mss.mir.mir_data_load import MIR_DataLoader
 from keras.callbacks import ModelCheckpoint
 from sklearn import metrics
 from tensorflow.keras import regularizers
+from keras import backend as K
 
 def existing_model(model_name,new_name):
     conv_net = ConvNet.load(model_name)
@@ -105,7 +106,7 @@ class ConvNet():
     
     def train_on_generator(self,model,batch_size,epochs):
         dataloader = MIR_DataLoader()
-        x_train, y_train = dataloader.load_data(train="train", model="base")
+        x_train, y_train = dataloader.load_data(train="train", model=model)
         x_test, y_test = dataloader.load_data("test", model=model)
         # x_train = x_train[:50]
         # y_train = y_train[:50]
@@ -114,12 +115,13 @@ class ConvNet():
 
         # filepath="MIR_trained_models/mir_model_3/weights-improvement-{epoch:02d}-{val_binary_accuracy:.2f}.h5"
         # checkpoint = ModelCheckpoint(filepath, monitor='accuracy', verbose=1, save_best_only=True, mode='max')
-
+        class_weights = {0:1.7880794701986755, 1:1.5254237288135593, 2:1.5055762081784387, 3:0.9225512528473804, 4:0.6666666666666666, 5:0.9507042253521126, 6:0.7390510948905109, 7:1.125, 8:1.2796208530805686, 9:1.2347560975609757, 10:0.6049290515309933}
         self.model.fit(my_train_batch_generator,
                         epochs = epochs, 
                         verbose = 1,
                         shuffle=True,                        
                         validation_data=my_test_batch_generator,
+                        class_weight=class_weights,
                         callbacks=[CustomCallback(self) ]#, checkpoint ]
         )
 
@@ -131,20 +133,20 @@ class ConvNet():
         return model
 
     def _conv_block(self,model,i):
-        model.add(layers.Conv2D(self.conv_filters[i],self.conv_kernels[i],padding="same",kernel_initializer=self.weight_initializer,kernel_regularizer=regularizers.l1(1e-4)) )
+        model.add(layers.Conv2D(self.conv_filters[i],self.conv_kernels[i],padding="same",kernel_initializer=self.weight_initializer,kernel_regularizer=regularizers.l1(1e-5)) )
         # model.add(layers.BatchNormalization())
         model.add(layers.Activation("relu"))
         model.add(layers.MaxPooling2D(pool_size=(self.conv_strides[i],self.conv_strides[i])))
-        model.add(layers.Dropout(0.3)) #0.2
+        model.add(layers.Dropout(0.2)) #0.2
         return model
     
     def _dense_layer(self,model):
         model.add(layers.Flatten())
-        model.add(layers.Dense(512,kernel_initializer=self.weight_initializer,kernel_regularizer=regularizers.l1(1e-4)))
+        model.add(layers.Dense(512,kernel_initializer=self.weight_initializer)) #higher value  (0.1 > 0.001) --> the more regularisation
         model.add(layers.Activation("relu"))
         # model.add(layers.BatchNormalization())
-        model.add(layers.Dropout(0.5)) #0.3
-        model.add(layers.Dense(11,kernel_regularizer= regularizers.l1(1e-4)))
+        model.add(layers.Dropout(0.3)) #0.3
+        model.add(layers.Dense(11))
         return model
     
     def _output_layer(self,model):
@@ -196,8 +198,8 @@ class CustomCallback(keras.callbacks.Callback):
         # conv_net = existing_model(model_name,new_name)
 
         dataloader = MIR_DataLoader(verbose=False)
-        x_train, y_train = dataloader.load_data(train="train", model="base")
-        x_test, y_test = dataloader.load_data(train="test", model="base")
+        x_train, y_train = dataloader.load_data(train="train", model="with_postprocessing")
+        x_test, y_test = dataloader.load_data(train="test", model="with_postprocessing")
         my_train_batch_generator = My_Custom_Generator(x_train, y_train, 1)
         my_test_batch_generator = My_Custom_Generator(x_test, y_test, 1)
 
@@ -210,12 +212,23 @@ class CustomCallback(keras.callbacks.Callback):
             auc = metrics.auc(fpr,tpr)
             aucs.append(auc)
         
-        print (f" - m_auc: {round(np.mean(aucs),4)}")
+        auc_stat = round(np.mean(aucs),4)
+        print (f" - m_auc: {auc_stat}")
 
         
-        self.conv_net.save(self.conv_net._name,verbose=False)
+        self.conv_net.save(self.conv_net._name+" auc "+str(auc_stat),verbose=False)
+        # self.conv_net.compile()
+        lr =  None
+        # print(self.conv_net.epoch_count)
+        '''
+        if self.conv_net.epoch_count == 25+2 :  lr = 3e-4 ; K.set_value(self.conv_net.model.optimizer.learning_rate,lr)     #+2 because start at 2 after increment by 1 (start val)
+        if self.conv_net.epoch_count == 50+2 :  lr = 2e-4 ; K.set_value(self.conv_net.model.optimizer.learning_rate,lr)
+        if self.conv_net.epoch_count == 75+2 :  lr = 1e-4 ;K.set_value(self.conv_net.model.optimizer.learning_rate,lr)
+        '''    
+    
+        # print("reduced learn rate to ",lr)
 
-
+        # print(keys)
         # print("End epoch {} of training; got log keys: {}".format(epoch, keys))
 
 

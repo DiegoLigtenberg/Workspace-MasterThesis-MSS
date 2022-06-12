@@ -36,13 +36,13 @@ class MIR_DataLoader():
 
     def _create_data(self):
         spectrogram_paths = [
-            "MIR_datasets/train_dataset/spectrogram_base",
-            "MIR_datasets/train_dataset/spectrogram_no_post",
-            "MIR_datasets/train_dataset/spectrogram_with_post",
+            "G:/Thesis/MIR_datasets/train_dataset/spectrogram_base", #MIR_datasets/train_dataset/spectrogram_base",
+            "G:/Thesis/MIR_datasets/train_dataset/spectrogram_no_post",#"MIR_datasets/train_dataset/spectrogram_no_post",
+            "G:/Thesis/MIR_datasets/train_dataset/spectrogram_with_post", #"MIR_datasets/train_dataset/spectrogram_with_post",
 
-            "MIR_datasets/test_dataset/spectrogram_base",
-            "MIR_datasets/test_dataset/spectrogram_no_post",
-            "MIR_datasets/test_dataset/spectrogram_with_post",
+            "G:/Thesis/MIR_datasets/test_dataset/spectrogram_base", #"MIR_datasets/test_dataset/spectrogram_base",
+            "G:/Thesis/MIR_datasets/test_dataset/spectrogram_no_post",#"MIR_datasets/test_dataset/spectrogram_no_post",
+            "G:/Thesis/MIR_datasets/test_dataset/spectrogram_with_post"#"MIR_datasets/test_dataset/spectrogram_with_post",
         ]
         paths = spectrogram_paths[self.paths]
         if self.verbose: print(paths)
@@ -89,4 +89,4 @@ class My_Custom_Generator(keras.utils.all_utils.Sequence):
 
 if __name__== "__main__":
     loader = MIR_DataLoader()
-    loader.load_data(train="train",model="with_postprocessing")
+    loader.load_data(train="test",model="base")

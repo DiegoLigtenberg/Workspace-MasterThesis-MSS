@@ -1,6 +1,4 @@
-from enum import auto
-
-from tensorflow.keras.datasets import mnist
+# from tensorflow.keras.datasets import mnist
 from tensorflow.keras import backend as K
 import numpy as np
 import tensorflow as tf
@@ -66,7 +64,7 @@ def train(learning_rate,batch_size,epochs,model_name=""):
   variatonal_auto_encoder = AutoEncoder(
       input_shape=(2048, 128, 1),
       conv_filters=(64, 64, 128, 128, 256, 512), # how many kernels you want per layer
-      conv_kernels=(5,   5,   3,   3,   3,   3), # KERNEL SIZE SHOULD BE DIVISIBLE BY STRIDE! but only when upsampling! -> OTHERWISE CITY BLOCK PATTERN -> receptive field
+      conv_kernels=(5,   5,   3,   3,   3,   3), # KERNEL SIZE SHOULD BE DIVISIBLE BY STRIDE! but only when upsampling! -> OTHERWISE CITY BLOCK PATTERN -> receptive field (at how big grid it looks)
       conv_strides=(2,   2,   2,   2,   2,   2), # probably also remove large stride size in beginning! UNET ENDS WITH 1x1 CONV BLOCK!
       latent_space_dim=128)
     

@@ -7,6 +7,11 @@ from mss.utils.dataloader import natural_keys
 
 PATHS = ["MIR_datasets/train_dataset/track_output_base","F:\Thesis\instr classification dataset\IRMAS-TestingData-Part2"] # paths to og files of irmas dataset
 
+# calcualte class weights
+df = pd.read_csv("MIR_datasets/MIR_train_labels_merged.csv")
+print(df.sum())
+asd
+
 class LabelGenerator():
     '''
     class looks at the original train data file, and the original test data file for irmas dataset and generates labels in pandas dataframe format.
@@ -72,7 +77,7 @@ class LabelGenerator():
             
             instrument_count_matrix = np.delete(instrument_count_matrix,(0),axis=0) # delete initialisation row
             df = pd.DataFrame(instrument_count_matrix,columns=columns)
-        print(df)
+        
 
         if save:
             print("saved labels to MIR_datasets")
@@ -82,6 +87,6 @@ class LabelGenerator():
 
 if __name__=="__main__":
     # label_generator_train = LabelGenerator(PATHS,train=True,save=True)
-    label_generator_test = LabelGenerator(PATHS,train=False,save=True)
+    label_generator_test = LabelGenerator(PATHS,train=False,save=False)
 
 

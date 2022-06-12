@@ -54,7 +54,7 @@ class Loader():
     def load_from_path(self):
         '''this method can be implemented when I choose to make custom datasets'''     
         file = self.input_track_list[self.input_counter]
-        signal = librosa.load(file,sr=self.sample_rate,mono=False,duration=3)[0].T # transpose so stereo format is in (samples x stereo)        
+        signal = librosa.load(file,sr=self.sample_rate,mono=False)[0].T # transpose so stereo format is in (samples x stereo)        
         self.input_counter+=1
         return signal,file # returns a list of librosa loaded track waveforms
 
@@ -263,7 +263,7 @@ class Saver:
             save_dir = f"{dataset_type}/{source}"
             save_dir = Path("G:/Thesis")/Path(save_dir)
             if not os.path.exists(save_dir): os.makedirs(save_dir)
-            save_file = f"{dataset_type}/{source}/k_inference-{i}-{j}-{aug}"   
+            save_file = f"{dataset_type}/{source}/inference-{i}-{j}-{aug}"   
             save_file = Path("G:/Thesis")/Path(save_file)   
             np.save(str(save_file)+".npy",feature)
         else:
