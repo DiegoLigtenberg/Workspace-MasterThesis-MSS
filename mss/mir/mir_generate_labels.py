@@ -5,11 +5,20 @@ import pandas as pd
 import numpy as np
 from mss.utils.dataloader import natural_keys
 
-PATHS = ["MIR_datasets/train_dataset/track_output_base","F:\Thesis\instr classification dataset\IRMAS-TestingData-Part2"] # paths to og files of irmas dataset
+PATHS = ["MIR_datasets/train_dataset/track_output_base","F:\Thesis\instr classification dataset\IRMAS-TestingData-Part3"] # paths to og files of irmas dataset
 
 # calcualte class weights
-df = pd.read_csv("MIR_datasets/MIR_train_labels_merged.csv")
-print(df.sum())
+df = pd.read_csv("MIR_datasets/MIR_test_labels_combined.csv")
+
+b = df.sum()
+
+n_samples = sum(b)
+
+weights = [n_samples/(11* x) for x in b]
+
+print(b)
+print(weights)
+
 asd
 
 class LabelGenerator():
@@ -68,7 +77,8 @@ class LabelGenerator():
                     with open (f"{file}","r") as myfile:
                         test_instr = myfile.readlines()
                         test_instr = [w.strip().replace("\t","") for w in test_instr]
-                        # print(file,test_instr)
+                        if "cel" in test_instr:
+                            print(i,file,test_instr)
                     row = np.zeros(11)        
                     for word in test_instr:
                         if word in columns:
@@ -78,15 +88,15 @@ class LabelGenerator():
             instrument_count_matrix = np.delete(instrument_count_matrix,(0),axis=0) # delete initialisation row
             df = pd.DataFrame(instrument_count_matrix,columns=columns)
         
-
+        print(df.sum())
         if save:
             print("saved labels to MIR_datasets")
             if train: df.to_csv("MIR_datasets/MIR_train_labels.csv",index=False)
-            else:  df.to_csv("MIR_datasets/MIR_test_labels2.csv",index=False)
+            else:  df.to_csv("MIR_datasets/MIR_test_labels_combined.csv",index=False)
         
 
 if __name__=="__main__":
     # label_generator_train = LabelGenerator(PATHS,train=True,save=True)
-    label_generator_test = LabelGenerator(PATHS,train=False,save=False)
+    label_generator_test = LabelGenerator(PATHS,train=False,save=True)
 
 

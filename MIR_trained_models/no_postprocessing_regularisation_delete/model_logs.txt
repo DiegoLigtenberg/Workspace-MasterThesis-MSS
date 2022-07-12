@@ -1,0 +1,7 @@
+current epoch:		2
+best epoch:		[]
+best val_auc:		0.5
+lowest train_loss:	2.82147479057312
+lowest val_loss:	2.8607335090637207
+1	0.5
+2	0.5

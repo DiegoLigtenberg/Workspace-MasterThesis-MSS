@@ -1,0 +1,73 @@
+
+2022-06-12 13:19:09.343588: I tensorflow/stream_executor/cuda/cuda_dnn.cc:366] Loaded cuDNN version 8101
+501/501 [==============================] - ETA: 0s - loss: 0.2590 - binary_accuracy: 0.9080 - m_auc: 0.73
+501/501 [==============================] - 108s 205ms/step - loss: 0.2590 - binary_accuracy: 0.9080 - val_loss: 0.4087 - val_binary_accuracy: 0.8430
+Epoch 2/24
+501/501 [==============================] - ETA: 0s - loss: 0.2579 - binary_accuracy: 0.9081 - m_auc: 0.7308
+501/501 [==============================] - 98s 195ms/step - loss: 0.2579 - binary_accuracy: 0.9081 - val_loss: 0.4022 - val_binary_accuracy: 0.8438
+Epoch 3/24
+501/501 [==============================] - ETA: 0s - loss: 0.2580 - binary_accuracy: 0.9086 - m_auc: 0.729
+501/501 [==============================] - 107s 214ms/step - loss: 0.2580 - binary_accuracy: 0.9086 - val_loss: 0.4123 - val_binary_accuracy: 0.8424
+Epoch 4/24
+501/501 [==============================] - ETA: 0s - loss: 0.2570 - binary_accuracy: 0.9086 - m_auc: 0.7276
+501/501 [==============================] - 97s 194ms/step - loss: 0.2570 - binary_accuracy: 0.9086 - val_loss: 0.4094 - val_binary_accuracy: 0.8434
+Epoch 5/24
+501/501 [==============================] - ETA: 0s - loss: 0.2570 - binary_accuracy: 0.9090 - m_auc: 0.7276
+501/501 [==============================] - 92s 184ms/step - loss: 0.2570 - binary_accuracy: 0.9090 - val_loss: 0.4153 - val_binary_accuracy: 0.8424
+Epoch 6/24
+501/501 [==============================] - ETA: 0s - loss: 0.2563 - binary_accuracy: 0.9088 - m_auc: 0.7276
+501/501 [==============================] - 92s 183ms/step - loss: 0.2563 - binary_accuracy: 0.9088 - val_loss: 0.4116 - val_binary_accuracy: 0.8435
+Epoch 7/24
+501/501 [==============================] - ETA: 0s - loss: 0.2559 - binary_accuracy: 0.9091 - m_auc: 0.7293
+501/501 [==============================] - 93s 185ms/step - loss: 0.2559 - binary_accuracy: 0.9091 - val_loss: 0.4079 - val_binary_accuracy: 0.8438
+Epoch 8/24
+501/501 [==============================] - ETA: 0s - loss: 0.2574 - binary_accuracy: 0.9093 - m_auc: 0.7292
+501/501 [==============================] - 93s 185ms/step - loss: 0.2574 - binary_accuracy: 0.9093 - val_loss: 0.4117 - val_binary_accuracy: 0.8431
+Epoch 9/24
+501/501 [==============================] - ETA: 0s - loss: 0.2543 - binary_accuracy: 0.9098 - m_auc: 0.7297
+501/501 [==============================] - 93s 185ms/step - loss: 0.2543 - binary_accuracy: 0.9098 - val_loss: 0.4069 - val_binary_accuracy: 0.8434
+Epoch 10/24
+501/501 [==============================] - ETA: 0s - loss: 0.2553 - binary_accuracy: 0.9093 - m_auc: 0.7276
+501/501 [==============================] - 93s 185ms/step - loss: 0.2553 - binary_accuracy: 0.9093 - val_loss: 0.4158 - val_binary_accuracy: 0.8431
+Epoch 11/24
+501/501 [==============================] - ETA: 0s - loss: 0.2548 - binary_accuracy: 0.9087 - m_auc: 0.7282
+501/501 [==============================] - 92s 184ms/step - loss: 0.2548 - binary_accuracy: 0.9087 - val_loss: 0.4089 - val_binary_accuracy: 0.8427
+Epoch 12/24
+501/501 [==============================] - ETA: 0s - loss: 0.2546 - binary_accuracy: 0.9092 - m_auc: 0.7297
+501/501 [==============================] - 92s 184ms/step - loss: 0.2546 - binary_accuracy: 0.9092 - val_loss: 0.4106 - val_binary_accuracy: 0.8423
+Epoch 13/24
+501/501 [==============================] - ETA: 0s - loss: 0.2539 - binary_accuracy: 0.9095 - m_auc: 0.7302
+501/501 [==============================] - 91s 182ms/step - loss: 0.2539 - binary_accuracy: 0.9095 - val_loss: 0.4052 - val_binary_accuracy: 0.8434
+Epoch 14/24
+501/501 [==============================] - ETA: 0s - loss: 0.2540 - binary_accuracy: 0.9094 - m_auc: 0.7298
+501/501 [==============================] - 91s 182ms/step - loss: 0.2540 - binary_accuracy: 0.9094 - val_loss: 0.4074 - val_binary_accuracy: 0.8423
+Epoch 15/24
+501/501 [==============================] - ETA: 0s - loss: 0.2537 - binary_accuracy: 0.9099 - m_auc: 0.7294
+501/501 [==============================] - 91s 182ms/step - loss: 0.2537 - binary_accuracy: 0.9099 - val_loss: 0.4055 - val_binary_accuracy: 0.8427
+Epoch 16/24
+501/501 [==============================] - ETA: 0s - loss: 0.2553 - binary_accuracy: 0.9088 - m_auc: 0.7305
+501/501 [==============================] - 92s 184ms/step - loss: 0.2553 - binary_accuracy: 0.9088 - val_loss: 0.4093 - val_binary_accuracy: 0.8429
+Epoch 17/24
+501/501 [==============================] - ETA: 0s - loss: 0.2534 - binary_accuracy: 0.9094 - m_auc: 0.7303
+501/501 [==============================] - 92s 184ms/step - loss: 0.2534 - binary_accuracy: 0.9094 - val_loss: 0.4117 - val_binary_accuracy: 0.8424
+Epoch 18/24
+501/501 [==============================] - ETA: 0s - loss: 0.2534 - binary_accuracy: 0.9091 - m_auc: 0.7287
+501/501 [==============================] - 92s 184ms/step - loss: 0.2534 - binary_accuracy: 0.9091 - val_loss: 0.4158 - val_binary_accuracy: 0.8414
+Epoch 19/24
+501/501 [==============================] - ETA: 0s - loss: 0.2524 - binary_accuracy: 0.9098 - m_auc: 0.7278
+501/501 [==============================] - 93s 185ms/step - loss: 0.2524 - binary_accuracy: 0.9098 - val_loss: 0.4152 - val_binary_accuracy: 0.8414
+Epoch 20/24
+501/501 [==============================] - ETA: 0s - loss: 0.2532 - binary_accuracy: 0.9090 - m_auc: 0.7278
+501/501 [==============================] - 92s 184ms/step - loss: 0.2532 - binary_accuracy: 0.9090 - val_loss: 0.4173 - val_binary_accuracy: 0.8405
+Epoch 21/24
+501/501 [==============================] - ETA: 0s - loss: 0.2538 - binary_accuracy: 0.9090 - m_auc: 0.7302
+501/501 [==============================] - 92s 184ms/step - loss: 0.2538 - binary_accuracy: 0.9090 - val_loss: 0.4049 - val_binary_accuracy: 0.8431
+Epoch 22/24
+501/501 [==============================] - ETA: 0s - loss: 0.2525 - binary_accuracy: 0.9096 - m_auc: 0.7301
+501/501 [==============================] - 96s 191ms/step - loss: 0.2525 - binary_accuracy: 0.9096 - val_loss: 0.4062 - val_binary_accuracy: 0.8424
+Epoch 23/24
+501/501 [==============================] - ETA: 0s - loss: 0.2521 - binary_accuracy: 0.9098 - m_auc: 0.7302
+501/501 [==============================] - 98s 196ms/step - loss: 0.2521 - binary_accuracy: 0.9098 - val_loss: 0.4101 - val_binary_accuracy: 0.8416
+Epoch 24/24
+501/501 [==============================] - ETA: 0s - loss: 0.2528 - binary_accuracy: 0.9090 - m_auc: 0.73
+501/501 [==============================] - 98s 195ms/step - loss: 0.2528 - binary_accuracy: 0.9090 - val_loss: 0.4047 - val_binary_accuracy: 0.8427

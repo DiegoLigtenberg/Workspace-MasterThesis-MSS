@@ -12,33 +12,35 @@ from sklearn.metrics import multilabel_confusion_matrix
 import numpy as np
 
 class Evaluate():
+    
     pass
 
 
+
+models = [
+"base_v_auc_0.7315",
+"no_post_v_auc 0.7644",
+"with_post_v_auc_0.7655"
+]
+
 if __name__ == "__main__":
-    model_name = "mir_model_with_postprocessing_ auc 0.0_1_1_100 auc 0.74" # 100 epoch
+    model_name = "with_postprocessing" # 100 epoch
+    # model_name = "no_post_less_regular_noWI_73 auc 0.7644" # 100 epoch
     
     conv_net = existing_model(model_name)
     dataloader = MIR_DataLoader()
-    x_train, y_train = dataloader.load_data(train="train", model="with_postprocessing")
-    x_test, y_test = dataloader.load_data(train="test", model="with_postprocessing")
-    # x_train = x_train[::5]
-    # y_train = y_train[::5]
+    x_train, y_train = dataloader.load_data(dataset="train", model="with_postprocessing")
+    x_test, y_test = dataloader.load_data(dataset="test", model="with_postprocessing")
+
+
 
     my_train_batch_generator = My_Custom_Generator(x_train, y_train, 1)
     my_test_batch_generator = My_Custom_Generator(x_test, y_test, 1)
 
-    # '''
     preds = conv_net.model.predict(my_test_batch_generator)
-   
 
-    
-    # '''
-
-    
-
-    # lrap = label_ranking_average_precision_score(y_test,preds)
-    # print(lrap)
+    lrap = label_ranking_average_precision_score(y_test,preds)
+    print("lrap=",lrap)
     # asd
    
     # y_pred = (preds > 0.5)
@@ -85,7 +87,7 @@ if __name__ == "__main__":
         for j,duo in enumerate(conc):
             #standard values is 0,1
             v1 = np.array([-0.6,1]) # (fpr, tpr) lowering the 1st value makes the model more strict in selecting ! -> reduces missclassification but also reduces 'hits' -> predict 0 more often
-            v2 = np.array(conc[j])
+            v2 = np.array(duo)
             v3 = v1-v2
             mag = np.sqrt(v3.dot(v3))
             # if i == 2: print(v1,v2,mag)
@@ -97,7 +99,7 @@ if __name__ == "__main__":
         closest_treshold_top_left = tresholds[np.argmin(conc)]
         optimal_tresholds.append(closest_treshold_top_left)
 
-        tn, fp, fn, tp = confusion_matrix((y_test[:,i]>optimal_tresholds[i]),(preds[:,i]>optimal_tresholds[i])).ravel()
+        tn, fp, fn, tp = confusion_matrix((y_test[:,i]>optimal_tresholds[i]),(preds[:,i]>optimal_tresholds[i]),labels=[0,1]).ravel()
         
         picked_fpr = fpr[np.argmin(conc)]
         picked_tpr = tpr[np.argmin(conc)]
@@ -123,15 +125,32 @@ if __name__ == "__main__":
 
         # print(fpr.shape,tpr.shape,tresholds.shape)
         auc = metrics.auc(fpr,tpr)
+        # # validation and test
+        # fig = plt.figure()
+        # ax = plt.subplot(111)
+        # ax.plot(x_train, y_train, label='train loss')
+        # ax.plot(x_train, avg_train, label = 'train loss smoothed')
+        # ax.plot(x_val, y_val, label = 'val loss')
+        # ax.plot(x_val, avg_val, label = 'val loss smoothed')
+        # plt.title('train&val loss')
+        # ax.legend()
+        # fig.savefig(f"visualisation/{model_name}/train_val_loss")
+        
         import matplotlib.pyplot as plt
+
+        # fig,axes = plt.subplots(6,2)
+        # axes[0]
+
+        # ax = plt.plot()
+        fig = plt.figure
         plt.figure(1)
-        plt.plot([0, 1], [0, 1], 'k--')
+        # plt.plot([0, 1], [0, 1], 'k--')
         plt.plot(fpr, tpr, label='Keras (area = {:.3f})'.format(auc))
         plt.xlabel('False positive rate')
         plt.ylabel('True positive rate')
         plt.title('ROC curve')
         plt.legend(loc='best')
-        plt.show()
+        # plt.show()
         aucs.append(auc)
         print(auc)
     print("mean auc",np.mean(aucs))
@@ -148,12 +167,14 @@ if __name__ == "__main__":
 
     # '''
     my_training_batch_generator = My_Custom_Generator(x_test, y_test, 1) #x_train file names
-    for i in range(0,20):
+    for i in range(0,200):
         inp = my_training_batch_generator.__getitem__(i)[0]
         true = my_training_batch_generator.__getitem__(i)[1]
 
         # print(inp)
-        print(true)
+        q = true
+        [q] = q
+        print(q)
 
 
 
@@ -168,7 +189,7 @@ if __name__ == "__main__":
         preds  = conv_net.model.predict(inp).tolist() # thisd is predict
         # print("woof,",optimal_tresholds[i],preds[:,i])
         # print("\n\n\n")
-        print(np.round_(preds,2))
+        # print(np.round_(preds,2))
         # print(optimal_tresholds[0])
         # asd
         # #unlist the list

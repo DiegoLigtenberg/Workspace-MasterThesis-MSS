@@ -55,13 +55,99 @@ def visualize_loss(total_train_loss,total_val_loss,save=True,smoothing=30,model_
     close(fig)
     fig = plt.figure()
     ax = plt.subplot(111)
-    ax.plot(x_val, y_val, label = 'val loss')
-    ax.plot(x_val, avg_val, label = 'val loss smoothed')
-    plt.title('val loss')
+    ax.plot(x_val, y_val, label = 'val auc')
+    ax.plot(x_val, avg_val, label = 'val auc smoothed')
+    plt.title(f'with_postprocessing - val auc: max = {np.max(y_val)} epoch[{np.argmax(y_val)}]')
     ax.legend()
-    fig.savefig(f"visualisation/{model_name}/val_loss")
+    fig.savefig(f"visualisation/{model_name}/val auc")
     close(fig)
 
+def visualize_loss_auc(total_train_loss,total_val_loss,save=True,smoothing=30,model_name=""):
+    folder = f"visualisation/{model_name}"
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    if save:
+        np.save(f"visualisation/{model_name}/total_train_loss",total_train_loss)
+        np.save(f"visualisation/{model_name}/total_val_loss",total_val_loss)
+
+    # try:
+    y_train = total_train_loss        
+    y_train = np.array(y_train)
+    x_train = np.arange(len(total_train_loss))
+    avg_train = convolving_average(y_train,N=smoothing)
+
+    y_val = total_val_loss
+    y_val = np.array(y_val)
+    x_val = np.arange(len(total_val_loss))
+    avg_val = convolving_average(y_val,N=smoothing)
+
+    fig = plt.figure()
+    ax = plt.subplot(111)
+    ax.plot(x_val, y_val, label = 'val auc')
+    ax.plot(x_val, avg_val, label = 'val auc smoothed')
+    plt.title(f'with_postprocessing - val auc: max = {np.max(y_val)} epoch[{np.argmax(y_val)}]')
+    ax.legend()
+    fig.savefig(f"visualisation/{model_name}/val auc")
+    close(fig)
+
+
+def visualize_loss_val(total_train_loss,total_val_loss,save=True,smoothing=30,model_name=""):
+    folder = f"visualisation/{model_name}"
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    if save:
+        np.save(f"visualisation/{model_name}/total_train_loss",total_train_loss)
+        np.save(f"visualisation/{model_name}/total_val_loss",total_val_loss)
+
+    # try:
+    y_train = total_train_loss        
+    y_train = np.array(y_train)
+    x_train = np.arange(len(total_train_loss))
+    avg_train = convolving_average(y_train,N=smoothing)
+
+    y_val = total_val_loss
+    y_val = np.array(y_val)
+    x_val = np.arange(len(total_val_loss))
+    avg_val = convolving_average(y_val,N=smoothing)
+
+    # validation and test
+    fig = plt.figure()
+    ax = plt.subplot(111)
+    ax.plot(x_train, y_train, label='train loss')
+    ax.plot(x_train, avg_train, label = 'train loss smoothed')
+    ax.plot(x_val, y_val, label = 'val loss')
+    ax.plot(x_val, avg_val, label = 'val loss smoothed')
+    plt.title('train&val loss')
+    ax.legend()
+    fig.savefig(f"visualisation/{model_name}/train_val_loss")
+    close(fig)
+
+    fig = plt.figure()
+    ax = plt.subplot(111)
+    ax.plot(x_train, y_train, label='train loss')
+    ax.plot(x_train, avg_train, label = 'train loss smoothed')
+    plt.title('train loss')
+    ax.legend()
+    fig.savefig(f"visualisation/{model_name}/train_loss")
+    close(fig)
+ 
+
+    fig = plt.figure()
+    ax = plt.subplot(111)
+    ax.plot(x_train, y_train, label='train loss')
+    ax.plot(x_train, avg_train, label = 'train loss smoothed')
+    plt.title('train loss')
+    ax.legend()
+    fig.savefig(f"visualisation/{model_name}/train_loss")
+    close(fig)
+    fig = plt.figure()
+    ax = plt.subplot(111)
+    ax.plot(x_val, y_val, label = 'val loss')
+    ax.plot(x_val, avg_val, label = 'val loss smoothed')
+    plt.title(f'with_postprocessing - val loss: min = {np.min(y_val)} epoch[{np.argmin(y_val)}]')
+    ax.legend()
+    fig.savefig(f"visualisation/{model_name}/val loss")
+    close(fig)
         
     # except Exception as e:
     #     if __name__== "__main__":
