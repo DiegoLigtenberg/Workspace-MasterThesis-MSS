@@ -2,6 +2,7 @@
  Master Thesis - Diego Ligtenberg - Grade 8.0
  * Source separation
    * Add all source separated .mp3 files into the track_input folder
+   * run mss_extractor.py and select whether to use 'with or without' postprocessing
    * The output will de be produced at track_output file
 
  * Instrument classification
