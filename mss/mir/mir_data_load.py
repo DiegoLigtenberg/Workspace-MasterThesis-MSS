@@ -5,8 +5,7 @@ import numpy as np
 import keras
 from collections import OrderedDict
 from mss.utils.dataloader import natural_keys
-
-from mss.mir.mir_parse import SPECTROGRAM_PATHS
+from mss.mir.mir_settings import SPECTROGRAM_PATHS
 
 class MIR_DataLoader():
     '''
@@ -18,7 +17,6 @@ class MIR_DataLoader():
         labels of spectrogram path files from a directory and outputs their file names
         - labels corresponding to the cached spectrograms
     '''
-    
 
     def __init__(self,verbose=True):
         self.verbose = verbose
@@ -46,12 +44,7 @@ class MIR_DataLoader():
         total_samples = sum(class_samples)        
         train_class_weights = enumerate([total_samples/(amnt_classes* x) for x in class_samples])
         train_class_weights_d = dict((k,v) for k,v in train_class_weights)
-        # REMOVE IF FAIL
-        train_class_weights_d[3] *=1.5
-        train_class_weights_d[4] *=2
-
         return train_class_weights_d
-
 
     def _create_data(self,dataset,model):
         # load the path of spectrograms from specified data split (train/val/test) and model (base/no_post/with_post)
@@ -99,10 +92,7 @@ class My_Custom_Generator(keras.utils.all_utils.Sequence):
             (np.load(str(file_name)))
                for file_name in batch_x]), np.array(batch_y)
 
-if __name__== "__main__":
-
-   
+if __name__== "__main__":   
     loader = MIR_DataLoader()
     loader.load_data(dataset="test",model="with_postprocessing")
     print(MIR_DataLoader.get_train_class_weights())
-

@@ -1,7 +1,7 @@
 # https://github.com/sigsep/sigsep-mus-oracle/blob/master/IBM.py
 
 import musdb
-from tensor_to_wav import save_wav
+# from tensor_to_wav import save_wav
 # mus = musdb.DB("database_wav",download=False,is_wav=True)
 # mus[0].audio
 
@@ -11,8 +11,11 @@ from scipy.io import wavfile
 import os 
 
 # this function splits the music tracks on alphabetical order instead of order in directory
-mus_train = musdb.DB("database_wav",subsets="train", split='train',download=False,is_wav=True)
-# mus_valid = musdb.DB("database_wav",subsets="train", split='valid',download=False,is_wav=True)
+mus_train = musdb.DB(root="databases/database",subsets="train", split='train',download=False,is_wav=False) #is_wav = false because database_wav folder is in mp4
+mus_valid = musdb.DB(root="databases/database",subsets="train", split='valid',download=False,is_wav=False)
+print(len(mus_train))
+print(len(mus_valid))
+asd
 # mus_test = musdb.DB("database_wav",subsets="test",download=False,is_wav=True)
 
 # wav = load_track("database/train/Steven Clark - Bounty.stem.mp4", 2, 44100)

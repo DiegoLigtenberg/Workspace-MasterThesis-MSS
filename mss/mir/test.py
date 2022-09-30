@@ -10,13 +10,63 @@
 # vio     656.0
 # voi    1339.0
 
+from re import M
+from matplotlib.pyplot import close
+import os 
+import glob
+import numpy as np
+import matplotlib.pyplot as plt
+VISUALISATION_FOLDER = "mss_evaluate_data/visualisation/"
+
+def visualize_loss():
+    model =3
+    x_msa = np.load(f"{VISUALISATION_FOLDER}loss_metrics/database_msa_{model}.npy")
+    x_sdr = np.load(f"{VISUALISATION_FOLDER}loss_metrics/database_sdr_{model}.npy")
+    # fig = plt.figure()
+    # ax = plt.subplot(111)
+    # ax.plot(x_msa, label='msa loss')
+    # ax.plot(np.ones_like(x_msa) * np.mean(x_msa), label = 'avg msa')
+    # ax.set(title='MSA loss per song in MUSDB test')
+    # plt.xlabel("test song")
+    # plt.ylabel("MSA")
+    # ax.legend()
+    # folder = f"{VISUALISATION_FOLDER}loss_metrics/"
+    # if not os.path.exists(folder): os.makedirs(folder)
+    # plt.show()
+    # fig.savefig(f"{folder}msa_loss{model}")
+    # close(fig)
+    fig = plt.figure()
+    ax = plt.subplot(111)
+    ax.plot(x_sdr, label='sdr loss')
+    ax.plot(np.ones_like(x_sdr)*np.mean(x_sdr), label = 'avg sdr')
+    # ax.set(title='SDR loss per song in MUSDB test')
+    plt.xlabel("test song")
+    plt.ylabel("SDR")
+    ax.legend()
+    folder = f"{VISUALISATION_FOLDER}loss_metrics/"
+    if not os.path.exists(folder): os.makedirs(folder)
+    plt.ylim((-8,15))
+    # fig.savefig(f"{folder}1_sdr_loss_with_post")
+    plt.show()
+    close(fig)
+
+
+
+
+visualize_loss()
+
+
+
+
+
+from ast import Raise
 import pathlib
 import numpy as np
 
 a = [1,2,3]
 b = [2,3,4]
 
-
+Raise
 a = 4 if 5==4 else 5
 print(a)
 

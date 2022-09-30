@@ -52,7 +52,7 @@ class AutoEncoder():
         tf.random.set_seed(1)
         # self.weight_initializer = tf.initializers. TruncatedNormal(mean=0., stddev=1/1024)
         self.weight_initializer = tf.keras.initializers.TruncatedNormal(mean=0.0, stddev=0.05, seed=None )
-        self.regularizer = None# regularizers.l2(1e-3)
+        self.regularizer = None# regularizers.l2(1e-3) # try 1e-6 cus lower number is less regularisation
         self.name = ""
 
         '''private and protected does not exist in python, so this is just convention, but not neccesary!'''
@@ -138,7 +138,7 @@ class AutoEncoder():
         import tensorflow
         self.model.summary()
         if save_image:
-            tensorflow.keras.utils.plot_model(self.model, "model_multiply.png", show_shapes=True)
+            tensorflow.keras.utils.plot_model(self.model, "model_thesis.png", show_shapes=True)
         #     keras.utils.plot_model(self.decoder, "decoder_model.png", show_shapes=True)
 
     def compile(self, learning_rate=0.0001):

@@ -42,11 +42,11 @@ def existing_model(model_name):
 
 if __name__ == "__main__":
     # model_name = "no_post_less_regular_noWI_73 auc 0.7644" # 100 epoch
-    model_name = "no_postprocessing_regularisation" # 100 epoch
+    model_name = "no_postprocessing_poisson" # 100 epoch
     
     
-    # conv_net = new_model(model_name)
-    conv_net = existing_model(model_name)
+    conv_net = new_model(model_name)
+    # conv_net = existing_model(model_name)
     conv_net.train_on_generator(model="no_postprocessing",batch_size=BATCH_SIZE,epochs=EPOCHS)
     
 

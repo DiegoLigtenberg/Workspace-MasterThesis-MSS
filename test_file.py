@@ -3,6 +3,17 @@
 import time 
 import numpy as np
 import librosa
+from scipy.linalg import logm, expm
+
+a = np.array([[1000,100],[100,100]])
+
+print(a**2)
+print(np.square(a))
+asd
+# a = 100
+# print(np.log(a))
+# print(logm(a))
+# asd
 metrics_names = ['acc','pr'] 
 
 num_epochs = 5

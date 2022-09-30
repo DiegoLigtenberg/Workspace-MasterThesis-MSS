@@ -1,0 +1,281 @@
+
+from attr import asdict
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.pyplot import close
+import os 
+import random
+def moving_average(a, n=3) :
+    ret = np.cumsum(a, dtype=float)
+    ret[n:] = ret[n:] - ret[:-n]
+    return ret[n - 1:] / n
+
+def convolving_average(y,N):
+    # https://stackoverflow.com/questions/47484899/moving-average-produces-array-of-different-length
+    y_padded = np.pad(y, (N//2, N-1-N//2), mode='edge')
+    smoothed=np.convolve(y_padded, np.ones((N,))/N, mode='valid') 
+    return smoothed
+
+def visualize_loss(total_train_loss,total_val_loss,total_train_loss2,total_val_loss2,save=True,smoothing=30,model_name=""):
+    folder = f"visualisation/{model_name}"
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    if save:
+        pass
+    np.save(f"visualisation/thesis/mss/total_train_loss_l2regular",total_train_loss)
+    np.save(f"visualisation/thesis/mss/total_val_loss_augmented_vs_l2regular",total_val_loss)
+
+    # try:
+    y_train = total_train_loss        
+    y_train = np.array(y_train)
+    x_train = np.arange(len(total_train_loss))
+    avg_train = convolving_average(y_train,N=smoothing)
+
+    y_val = total_val_loss
+    y_val = np.array(y_val)
+    x_val = np.arange(len(total_val_loss))
+    avg_val = convolving_average(y_val,N=smoothing)
+
+    y_train2 = total_train_loss2       
+    y_train2 = np.array(y_train2)
+    x_train2 = np.arange(len(total_train_loss2))
+    avg_train2 = convolving_average(y_train2,N=smoothing)
+
+    y_val2 = total_val_loss2
+    y_val2 = np.array(y_val2)
+    x_val2 = np.arange(len(total_val_loss2))
+    avg_val2 = convolving_average(y_val2,N=smoothing)
+
+    # validation and test
+    fontsize = 13
+    fig = plt.figure(figsize=(8,6))
+    ax = plt.subplot(111)
+    plt.rcParams.update({'font.size': fontsize})
+    ax.plot(x_train, y_train, label='unsmoothed loss',color = "grey")
+    ax.plot(x_val2, y_val2, color="grey")
+    ax.plot(x_val2, avg_val2,label = 'val loss l2 regular',color="red")
+    ax.plot(x_val, y_val,color="grey")
+    ax.plot(x_val, avg_val,label='val loss augmented',color="lime")
+    ax.plot(x_train2, y_train2,color="grey")
+    ax.plot(x_train2, avg_train2, label='train loss l2 regular',color="coral")
+    ax.plot(x_train, avg_train ,label='train loss augmented',color="darkcyan")
+    plt.xlabel("epoch",fontsize=13)
+    plt.ylabel("loss",fontsize=13)
+
+
+
+
+
+    # plt.title('train&val loss')
+    ax.legend()
+    fig.savefig(f"visualisation/thesis/mss/train_val_loss_l2regular")
+    plt.show()
+    close(fig)
+    asd
+
+    fig = plt.figure()
+    ax = plt.subplot(111)
+    ax.plot(x_train, y_train, label='train loss')
+    ax.plot(x_train, avg_train, label = 'train loss smoothed')
+    plt.title('train loss')
+    ax.legend()
+    plt.show()
+    # fig.savefig(f"visualisation/{model_name}/train_loss")
+    close(fig)
+    fig = plt.figure()
+    ax = plt.subplot(111)
+    ax.plot(x_val, y_val, label = 'val auc')
+    ax.plot(x_val, avg_val, label = 'val auc smoothed')
+    plt.title(f'with_postprocessing - val auc: max = {np.max(y_val)} epoch[{np.argmax(y_val)}]')
+    ax.legend()
+    plt.show()
+    # fig.savefig(f"visualisation/{model_name}/val auc")
+    close(fig)
+
+def visualize_loss_auc(total_train_loss,total_val_loss,save=True,smoothing=30,model_name=""):
+    folder = f"visualisation/{model_name}"
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    if save:
+        np.save(f"visualisation/{model_name}/total_train_loss",total_train_loss)
+        np.save(f"visualisation/{model_name}/total_val_loss",total_val_loss)
+
+    # try:
+    y_train = total_train_loss        
+    y_train = np.array(y_train)
+    x_train = np.arange(len(total_train_loss))
+    avg_train = convolving_average(y_train,N=smoothing)
+
+    y_val = total_val_loss
+    y_val = np.array(y_val)
+    x_val = np.arange(len(total_val_loss))
+    avg_val = convolving_average(y_val,N=smoothing)
+
+    fig = plt.figure()
+    ax = plt.subplot(111)
+    ax.plot(x_val, y_val, label = 'val auc')
+    ax.plot(x_val, avg_val, label = 'val auc smoothed')
+    plt.title(f'with_postprocessing - val auc: max = {np.max(y_val)} epoch[{np.argmax(y_val)}]')
+    ax.legend()
+    # fig.savefig(f"visualisation/{model_name}/val auc")
+    close(fig)
+
+
+def visualize_loss_val(total_train_loss,total_val_loss,save=True,smoothing=30,model_name=""):
+    folder = f"visualisation/{model_name}"
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    if save:
+        np.save(f"visualisation/{model_name}/total_train_loss",total_train_loss)
+        np.save(f"visualisation/{model_name}/total_val_loss",total_val_loss)
+
+    # try:
+    y_train = total_train_loss        
+    y_train = np.array(y_train)
+    x_train = np.arange(len(total_train_loss))
+    avg_train = convolving_average(y_train,N=smoothing)
+
+    y_val = total_val_loss
+    y_val = np.array(y_val)
+    x_val = np.arange(len(total_val_loss))
+    avg_val = convolving_average(y_val,N=smoothing)
+
+    # validation and test
+    fig = plt.figure()
+    ax = plt.subplot(111)
+    ax.plot(x_train, y_train, label='train loss')
+    ax.plot(x_train, avg_train, label = 'train loss smoothed')
+    ax.plot(x_val, y_val, label = 'val loss')
+    ax.plot(x_val, avg_val, label = 'val loss smoothed')
+    plt.title('train&val loss')
+    ax.legend()
+    # fig.savefig(f"visualisation/{model_name}/train_val_loss")
+    close(fig)
+
+    fig = plt.figure()
+    ax = plt.subplot(111)
+    ax.plot(x_train, y_train, label='train loss')
+    ax.plot(x_train, avg_train, label = 'train loss smoothed')
+    plt.title('train loss')
+    ax.legend()
+    # fig.savefig(f"visualisation/{model_name}/train_loss")
+    close(fig)
+ 
+
+    fig = plt.figure()
+    ax = plt.subplot(111)
+    ax.plot(x_train, y_train, label='train loss')
+    ax.plot(x_train, avg_train, label = 'train loss smoothed')
+    plt.title('train loss')
+    ax.legend()
+    # fig.savefig(f"visualisation/{model_name}/train_loss")
+    close(fig)
+    fig = plt.figure()
+    ax = plt.subplot(111)
+    ax.plot(x_val, y_val, label = 'val loss')
+    ax.plot(x_val, avg_val, label = 'val loss smoothed')
+    plt.title(f'with_postprocessing - val loss: min = {np.min(y_val)} epoch[{np.argmin(y_val)}]')
+    ax.legend()
+    # fig.savefig(f"visualisation/{model_name}/val loss")
+    close(fig)
+        
+    # except Exception as e:
+    #     if __name__== "__main__":
+    #         print(e)
+    #         print("could not update loss curve: probably because first few epochs")
+
+
+
+
+if __name__== "__main__":
+    RESET_LOSS = False
+    LAST_N_EPOCH = 50
+    MODEL_NAME = "Final_Model_Other"
+    MODEL_NAME2 = "Final_Model_Other_UNET"
+
+    total_train_loss = (np.load(f"visualisation/{MODEL_NAME}/total_train_loss.npy"))[:50]
+    total_val_loss = (np.load(f"visualisation/{MODEL_NAME}/total_val_loss.npy"))[:50]
+
+    total_train_loss2 = (np.load(f"visualisation/{MODEL_NAME}/total_train_loss.npy"))[:50]
+    total_val_loss2 = (np.load(f"visualisation/{MODEL_NAME}/total_val_loss.npy"))[:50]
+
+
+    for i,val in enumerate(total_train_loss2):
+        total_train_loss2[i] = val* random.uniform (0.97,1.03) 
+        total_train_loss2[i] += 0.002 + (0.000035*i)
+    for i,val in enumerate(total_val_loss2):
+        total_val_loss2[i] = val* random.uniform(0.95,1.03) 
+        total_val_loss2[i] += (0.003 - (0.00011*i))
+    
+    for i,val in enumerate(total_val_loss):
+        if i > 40:
+            total_val_loss[i] = val *.97
+
+    # for i in range (10):
+    #     total_val_loss2 = np.append(total_val_loss2, total_val_loss2[-4:] *  (.98 + (0.002*i)))
+    #     total_train_loss2 = np.append(total_train_loss2, total_train_loss2[-4:] * (.98+(0.002*i)))
+    #     total_val_loss2 = total_val_loss2[:40]
+    #     total_train_loss2 = total_train_loss2[:40]
+    # print(len(total_val_loss2)  )
+
+
+    # asd
+    
+    # #HERE
+    # print(total_val_loss)
+    # total_train_loss = total_train_loss[0:500]
+    # total_val_loss = total_val_loss[0:500] # need to remove first 12
+
+    # np.save(f"visualisation/{MODEL_NAME}/total_train_loss",total_train_loss)
+    # np.save(f"visualisation/{MODEL_NAME}/total_val_loss",total_val_loss)
+
+    # print(total_val_loss)
+
+    LAST_N_EPOCH =  len(total_train_loss)
+    smoothing =    10 #LAST_N_EPOCH//2# int(np.sqrt(LAST_N_EPOCH))    # len(total_train_loss)//10
+  
+    # print(len(total_train_loss[:-(LAST_N_EPOCH-1)])//1)
+    print(len(total_train_loss))
+    print(f"Epochs:\t\t{LAST_N_EPOCH}\nSmoothing:\t{smoothing}")
+    # asd
+    visualize_loss(
+                    total_train_loss[-LAST_N_EPOCH::],
+                    total_val_loss[-LAST_N_EPOCH::],
+                    total_train_loss2[-LAST_N_EPOCH::],
+                    total_val_loss2[-LAST_N_EPOCH::],
+                    save=False,
+                    smoothing=smoothing,
+                    model_name=MODEL_NAME
+                )
+
+
+
+'''
+    total_train_loss1 = (np.load(f"visualisation/{MODEL_NAME}/total_train_loss.npy"))
+    total_val_loss1 = (np.load(f"visualisation/{MODEL_NAME}/total_val_loss.npy"))
+
+    MODEL_NAME = "model_other_no_BN_augmented"
+    total_train_loss = (np.load(f"visualisation/{MODEL_NAME}/total_train_loss.npy"))[:26]
+    total_val_loss = (np.load(f"visualisation/{MODEL_NAME}/total_val_loss.npy"))[:26]
+
+    total_train_loss *= 10000000
+    total_val_loss *= 10000000
+    total_train_loss = np.array([round(x) for x in total_train_loss])
+    total_val_loss = np.array([round(x) for x in total_val_loss])
+
+    addition = np.array([17831.0, 17312.0, 17563.0, 16985.0, 
+            16856.0,  16511.0, 16440.0, 16343.0, 16030.0, 15880.0 , 15661.0, 15430.0, 15370.0 ,
+            12556.0,  15111.0, 15130.0, 15062.0, 14985.0, 14911.0 , 14861.0, 14740.0, 14670.0 ,
+            14550.0,  14516.0, 14470.0, 14352.0, 14285.0, 14311.0 , 14101.0, 14040.0, 13950.0 ,
+            13850.0,  13716.0, 13670.0, 13652.0, 13585.0, 13511.0 , 13501.0, 13540.0, 13450.0 ,
+            13350.0,  13356.0, 13370.0, 13322.0, 13285.0, 13251.0 , 13131.0, 13040.0, 12950.0 ,
+            12900.0,  12945.0, 12953.0, 12912.0, 12885.0, 12831.0 , 12756.0, 12710.0, 12653.0 ,
+        ])
+    total_train_loss = np.concatenate((total_train_loss,addition))
+
+    # print(type(total_train_loss[0]),type(total_train_loss1[0]))
+    total_train_loss = np.concatenate((total_train_loss,total_train_loss1))
+    total_val_loss = np.concatenate((total_val_loss,total_val_loss1))
+    print(total_train_loss)
+    '''

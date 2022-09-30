@@ -6,7 +6,15 @@ import numpy as np
 from mss.utils.dataloader import natural_keys
 
 PATHS = ["MIR_datasets/train_dataset/track_output_base","F:\Thesis\instr classification dataset\IRMAS-TestingData-Part3"] # paths to og files of irmas dataset
+# df = pd.read_csv("MIR_datasets/MIR_train_labels_merged.csv")
+# df = pd.read_csv("MIR_datasets/MIR_test_labels_combined.csv")
 
+# b = df.sum()
+# print(b)
+# print(sum(b))
+# print(len(df))
+# asd
+'''
 # calcualte class weights
 df = pd.read_csv("MIR_datasets/MIR_test_labels_combined.csv")
 
@@ -18,13 +26,23 @@ weights = [n_samples/(11* x) for x in b]
 
 print(b)
 print(weights)
+'''
 
-asd
 
 class LabelGenerator():
     '''
     class looks at the original train data file, and the original test data file for irmas dataset and generates labels in pandas dataframe format.
     '''
+    @classmethod
+    def i2f(cls,paths=PATHS[1]):
+        path = None
+        data = None
+        i_2_f = {}
+        path = paths;data = glob.glob(os.path.join(path, '*/*.wav'),recursive=True)            
+        data.sort(key=natural_keys)    
+        i_2_f  = dict(list(enumerate(data)))
+        return i_2_f
+
     def __init__(self,paths,train,save=False):
         path = None
         data = None
@@ -89,6 +107,7 @@ class LabelGenerator():
             df = pd.DataFrame(instrument_count_matrix,columns=columns)
         
         print(df.sum())
+        print(sum(df.sum()))
         if save:
             print("saved labels to MIR_datasets")
             if train: df.to_csv("MIR_datasets/MIR_train_labels.csv",index=False)
@@ -96,7 +115,9 @@ class LabelGenerator():
         
 
 if __name__=="__main__":
-    # label_generator_train = LabelGenerator(PATHS,train=True,save=True)
-    label_generator_test = LabelGenerator(PATHS,train=False,save=True)
+    # label_generator_train = LabelGenerator(PATHS,train=True,save=False)
+    label_generator_test = LabelGenerator(PATHS,train=False,save=False)
 
 
+    # print(LabelGenerator.i2f(PATHS)[41] )
+    pass

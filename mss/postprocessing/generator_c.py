@@ -16,8 +16,8 @@ DATAFOLDER = "mss_evaluate_data/database_test/"
 VISUALISATION_FOLDER = "mss_evaluate_data/visualisation/"
 
 SAVE_WAVEFORM = True             # if true: saves waveform of chosen model (may put of when evaluating musdb dataset)
-SAVE_LOSS = True                # if true: saves loss and visualizes it (msa loss and sdr loss)
-VISUALIZE_SPECTROGRAM = False    # if true: saves spectrogram (predict/target/mixture) for each track
+SAVE_LOSS = False                # if true: saves loss and visualizes it (msa loss and sdr loss)
+VISUALIZE_SPECTROGRAM = True    # if true: saves spectrogram (predict/target/mixture) for each track
 VERBOSE = False                  # if true: only print sdr and msa metrics when uploading
 model = "_3"                     # empty strsing if no adjust
 
@@ -27,7 +27,7 @@ class Generator():
         self.post_processing = post_processing
         self.database_msa = []
         self.database_sdr = []
-        self.target_frequency = 5500 # above 5500 is lots of artefacts
+        self.target_frequency = 20000 # above 5500 is lots of artefacts
 
     def generate_waveform(self, x_mixture_file_chunks, y_target_file_chunks=None, song_number=0, inference=False,save_mixture=False,file_name=""):
         '''
@@ -172,7 +172,7 @@ class Generator():
         ax.set(title='Log-amplitude spectrogram')
         ax.label_outer()
         fig.colorbar(img, ax=ax, format="%+2.f dB")
-        folder = f"{VISUALISATION_FOLDER}spectrograms/{instance}/{song_number}/"
+        folder = f"{VISUALISATION_FOLDER}spectrograms/{instance}_raw/{song_number}/"
         if not os.path.exists(folder): os.makedirs(folder)
         fig.savefig(f"{folder}{chunk}")
         plt.close()
@@ -263,19 +263,22 @@ class Generator():
         # post processing high pass filters to remove artefacts  
         m_f_hundred = self.target_frequency-500
         x_train = np.squeeze(x_train) 
-        x_train[self.get_frequency(m_f_hundred)::][x_train[self.get_frequency(m_f_hundred):: ] > 0.055] =-.33     # remove all loud high percussion artefacts (HPA) from 5k to 5.5k 
-        x_train[self.get_frequency(m_f_hundred)::][x_train[self.get_frequency(m_f_hundred):: ] > -0.0] *=.01      # compress all HPA to be maximum of -40 DB
-        x_train[self.get_frequency(m_f_hundred)::][x_train[self.get_frequency(m_f_hundred):: ] > -0.1] -=.015     # all left over HPA are still softened by a constant        
+        # x_train[self.get_frequency(m_f_hundred)::][x_train[self.get_frequency(m_f_hundred):: ] < 0.0] *=.     # remove all loud high percussion artefacts (HPA) from 5k to 5.5k 
+        x_train[:self.get_frequency(m_f_hundred):][x_train[:self.get_frequency(m_f_hundred): ] < -0.05] /=.5     # remove all loud high percussion artefacts (HPA) from 5k to 5.5k
+        x_train[:self.get_frequency(m_f_hundred):][x_train[:self.get_frequency(m_f_hundred): ] < -0.33] =-.33     # remove all loud high percussion artefacts (HPA) from 5k to 5.5k
+        # x_train[self.get_frequency(m_f_hundred)::][x_train[self.get_frequency(m_f_hundred):: ] > -0.0] *=.01      # compress all HPA to be maximum of -40 DB
+        # x_train[self.get_frequency(m_f_hundred)::][x_train[self.get_frequency(m_f_hundred):: ] > -0.1] -=.015     # all left over HPA are still softened by a constant        
         # x_train[get_frequency(8000)::][x_train[get_frequency(8000):: ] > -0.2] -=.05                            # all left over HPA from 8k + are softened by a constant (only when keeping HPA)
         
-        x_train[self.matrix_value - (self.matrix_value-self.get_frequency(self.target_frequency-500)):self.matrix_value:][(x_train[self.matrix_value-(
-            self.matrix_value-self.get_frequency(self.target_frequency-500)):self.matrix_value:] > -0.2)] -= .1   # last 5k-5.5k frequencies tomed down
-        x_train[self.matrix_value::] = -.33                                                                       # break wall limiter
+        # x_train[self.matrix_value - (self.matrix_value-self.get_frequency(self.target_frequency-500)):self.matrix_value:][(x_train[self.matrix_value-(
+        #     self.matrix_value-self.get_frequency(self.target_frequency-500)):self.matrix_value:] > -0.2)] -= .1   # last 5k-5.5k frequencies tomed down
+        # x_train[self.matrix_value::] = -.33                                                                       # break wall limiter
         x_train = np.expand_dims(x_train,axis=(0,-1))        
     
-        x_train[::][(x_train[::]<0.1) & (x_train[::] >= 0.0)] *=.2             
-        x_train[(x_train<0.0) & (x_train > -0.2)]  /=.2                                                            # the lower the division number (closer to 0) -> the more sound (drums) are removed, but also other sound
-        x_train[(x_train<=-0.2)] = -.33     
+        # x_train[::][(x_train[::] >= 0.0)] +=.2      
+        # x_train[::][(x_train[::]<0.2) & (x_train[::] >= 0.0)] *=.1       
+        # x_train[(x_train<0.0) & (x_train > -0.2)]  /=.2                                                            # the lower the division number (closer to 0) -> the more sound (drums) are removed, but also other sound
+        # x_train[(x_train<=-0.2)] = -.33     
         
         '''alternative post processing
         m_f_hundred = self.target_frequency-500       

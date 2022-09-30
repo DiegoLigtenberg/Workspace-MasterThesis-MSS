@@ -75,7 +75,7 @@ class Separator():
     separator is able to convert input songs to predicted waveforms 
     takes as input x_mixture , y_other'''
     
-    def __init__(self,post_processing=True) -> None:
+    def __init__(self,post_processing=False) -> None:
         self.post_processing = post_processing
         self.encoded_spectrograms = EncodedSpectrograms()        
         self.gen = Generator(post_processing=post_processing)

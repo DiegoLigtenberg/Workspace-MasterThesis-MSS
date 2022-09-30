@@ -18,7 +18,10 @@ from mss.mir.mir_data_load import MIR_DataLoader, My_Custom_Generator
 from mss.utils.visualisation import visualize_loss, visualize_loss_auc, visualize_loss_val
 from sklearn import metrics
 from pathlib import Path
+import tensorflow as tf
 
+
+ 
 class ConvNet():
 
     def __init__(self, input_shape,
@@ -91,12 +94,15 @@ class ConvNet():
         return conv_net
 
     def summary(self, save_image=False):
+        import tensorflow 
         self.model.summary()
+        tensorflow.keras.utils.plot_model(self.model, "model_conv.png", show_shapes=True)
 
     def compile(self, learning_rate=0.0001):
         
         optimizer = Adam(learning_rate=learning_rate)
         bce_loss = BinaryCrossentropy(from_logits=False)
+        bce_loss = tf.keras.losses.Poisson(reduction="auto", name="poisson")
         self.model.compile(optimizer=optimizer, loss=bce_loss,metrics=[keras.metrics.BinaryAccuracy()])# ,self.sklearnAUC],run_eagerly=True) #self.custom_loss)dw  OR  ['accuracy'] for exact matching 
     
     def train_on_generator(self,model,batch_size,epochs):
@@ -131,7 +137,7 @@ class ConvNet():
 
     def _conv_block(self,model,i):
         #regularizer was 1e-5 for base and no post process -> regularizer was 1e-6 for with postprocessing due to validation loss viewings # MaYBE TRIE 1e-4 FOR NOPOSTPROCESS
-        model.add(layers.Conv2D(self.conv_filters[i],self.conv_kernels[i],padding="same",kernel_initializer=self.weight_initializer,kernel_regularizer=regularizers.l1(1e-5)) ) # lower number (e8 < e6) means less regular #WAS 1e-8 -> used to be 1e-4
+        model.add(layers.Conv2D(self.conv_filters[i],self.conv_kernels[i],padding="same",kernel_initializer=self.weight_initializer,kernel_regularizer=regularizers.l1(1e-6)) ) # lower number (e8 < e6) means less regular #WAS 1e-8 -> used to be 1e-4
         # model.add(layers.Conv2D(self.conv_filters[i],self.conv_kernels[i],padding="same",kernel_initializer=self.weight_initializer) )
         # model.add(layers.BatchNormalization())
         model.add(layers.Activation("relu"))

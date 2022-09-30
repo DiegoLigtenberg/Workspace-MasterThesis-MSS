@@ -161,3 +161,4 @@ trained_models/
 *.stem.mp4
 *.h5
 *.png
+*.txt
