@@ -159,6 +159,5 @@ trained_models/
 *.npy
 *.mp4
 *.stem.mp4
-*.h5
 *.png
 *.txt
