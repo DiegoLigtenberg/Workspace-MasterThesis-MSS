@@ -1,4 +1,4 @@
 # Workspace MasterThesis MSS
  Master Thesis - Diego Ligtenberg
 
-![Alt text](10may examples/thesis img.JPG"Master Thesis Diego Ligtenberg - 26-09-22")
+![thesis img](https://user-images.githubusercontent.com/48967029/193250198-75f0950d-ff3b-48bb-8784-d5f6edbcae8f.JPG)
